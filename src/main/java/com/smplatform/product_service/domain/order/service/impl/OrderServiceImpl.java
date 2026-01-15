@@ -6,7 +6,6 @@ import com.smplatform.product_service.domain.coupon.entity.Coupon;
 import com.smplatform.product_service.domain.coupon.exception.CouponNotFoundException;
 import com.smplatform.product_service.domain.coupon.repository.CouponRepository;
 import com.smplatform.product_service.domain.coupon.service.MemberCouponService;
-import com.smplatform.product_service.domain.discount.repository.DiscountRepository;
 import com.smplatform.product_service.domain.member.entity.Delivery;
 import com.smplatform.product_service.domain.member.entity.Member;
 import com.smplatform.product_service.domain.member.repository.DeliveryRepository;
@@ -17,7 +16,7 @@ import com.smplatform.product_service.domain.order.entity.Order;
 import com.smplatform.product_service.domain.order.entity.OrderProduct;
 import com.smplatform.product_service.domain.order.entity.OrderProductStatus;
 import com.smplatform.product_service.domain.order.entity.OrderStatus;
-import com.smplatform.product_service.domain.order.repository.OrderBenefitRepository;
+import com.smplatform.product_service.domain.order.exception.OrderNotFoundException;
 import com.smplatform.product_service.domain.order.repository.OrderProductRepository;
 import com.smplatform.product_service.domain.order.repository.OrderRepository;
 import com.smplatform.product_service.domain.order.service.OrderService;
@@ -26,6 +25,7 @@ import com.smplatform.product_service.domain.product.exception.ProductNotFoundEx
 import com.smplatform.product_service.domain.product.exception.ProductOptionNotFoundException;
 import com.smplatform.product_service.domain.product.repository.ProductOptionRepository;
 import com.smplatform.product_service.domain.product.repository.ProductRepository;
+import com.smplatform.product_service.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -199,11 +199,11 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDto.OrderDetail getOrderDetail(String memberId, Long orderId) {
         // 주문 조회
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
+            .orElseThrow(() -> new OrderNotFoundException("주문을 찾을 수 없습니다: " + orderId));
 
         // 권한 확인 (본인의 주문만 조회 가능)
         if (!order.getMember().getMemberId().equals(memberId)) {
-            throw new IllegalArgumentException("본인의 주문만 조회할 수 있습니다.");
+            throw new UnauthorizedException("본인의 주문만 조회할 수 있습니다.");
         }
 
         // 주문 상품 목록 조회

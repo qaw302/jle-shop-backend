@@ -3,6 +3,7 @@ package com.smplatform.product_service.domain.order.controller;
 import com.smplatform.product_service.domain.order.dto.PaymentRequestDto;
 import com.smplatform.product_service.domain.order.service.PaymentService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +21,12 @@ import java.util.Map;
 @RestController
 @RequestMapping("/v1/payments")
 @RequiredArgsConstructor
+@Tag(name = "Payment", description = "Payment management APIs")
 public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/confirm")
+    @Operation(summary = "결제 승인", description = "결제 승인 후 주문 상태 업데이트 및 재고 차감을 수행합니다")
     public ResponseEntity<String> confirmPayment(@RequestBody PaymentRequestDto.PaymentConfirm dto) {
         String result = paymentService.confirmPayment(dto);
         
@@ -39,6 +42,7 @@ public class PaymentController {
     }
 
     @GetMapping("/success")
+    @Operation(summary = "결제 성공 처리", description = "결제 성공 후처리를 수행합니다")
     public ResponseEntity<String> paymentSuccess(@RequestParam String orderNumber) {
         try {
             paymentService.processPaymentSuccess(orderNumber);
