@@ -1,7 +1,11 @@
 package com.smplatform.product_service.domain.order.service;
 
 import com.smplatform.product_service.domain.order.dto.OrderRequestDto;
+import com.smplatform.product_service.domain.order.dto.OrderResponseDto;
 
 public interface OrderService {
-    Long saveOrder(String memberId, OrderRequestDto.OrderSave requestDto);
+    String saveOrder(String memberId, OrderRequestDto.OrderSave requestDto);  // Long -> String
+    OrderResponseDto.OrderDetail getOrderDetail(String memberId, Long orderId);
+    void cancelOrder(String memberId, Long orderId);
+    OrderResponseDto.OrderDetail getOrderDetailByOrderNumber(String memberId, String orderNumber);
 }

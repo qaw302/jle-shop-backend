@@ -88,15 +88,28 @@ public class DiscountServiceImpl implements DiscountService {
 
     // 할인코드 삭제
     @Override
+    @Transactional
     public String deleteDiscount(DiscountRequestDto.DeleteDiscount discountRequestDto) {
 
         int discountId = discountRequestDto.getDiscountId();
 
-        if (!discountRepository.existsById(discountId)) {
-            throw new DiscountNotFoundException("삭제할 할인 코드가 존재하지 않습니다. ID: " + discountId);
+        // 할인 존재 여부 확인
+        Discount discount = discountRepository.findById(discountId)
+            .orElseThrow(() -> new DiscountNotFoundException("삭제할 할인 코드가 존재하지 않습니다. ID: " + discountId));
+
+        // 해당 할인이 적용된 모든 상품 조회
+        List<Product> productsWithDiscount = productRepository.findAllByDiscount(discount);
+
+        // 상품에서 할인 제거
+        if (!productsWithDiscount.isEmpty()) {
+            log.info("할인 ID {} 삭제: {} 개의 상품에서 할인 제거", discountId, productsWithDiscount.size());
+            productsWithDiscount.forEach(Product::removeDiscount);
+            productRepository.saveAll(productsWithDiscount);
         }
 
+        // 할인 삭제
         discountRepository.deleteById(discountId);
+        log.info("할인 ID {} 삭제 완료", discountId);
 
         return String.valueOf(discountId);
     }

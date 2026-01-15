@@ -42,4 +42,12 @@ public class OrderProduct {
     private Discount.Type discountType;
     @Column(name = "disocunt_value")
     private Integer discountValue;
+
+    public void updateStatus(OrderProductStatus newStatus) {
+        this.orderProductStatus = newStatus;
+    }
+
+    public void completePayment() {
+        this.orderProductStatus = OrderProductStatus.PAYMENT_COMPLETE;
+    }
 }

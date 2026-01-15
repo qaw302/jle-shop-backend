@@ -83,7 +83,7 @@ ROLE: ADMIN
   "discountStartDate": "2025-07-01T00:00:00.000Z",
   "discountEndDate": "2025-07-29T00:00:00.000Z",
   "applyType": 2,
-  "ids": [3]
+  "ids": [1]
 }
 
 ### 4. 할인 조회

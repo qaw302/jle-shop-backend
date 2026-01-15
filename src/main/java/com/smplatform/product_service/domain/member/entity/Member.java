@@ -81,6 +81,9 @@ public class Member {
     @Column(name = "update_at")
     private LocalDateTime updateAt;
 
+//    @Column(name = "points")
+//    private Integer points = 0;
+
 
     public void update(MemberRequestDto.MemberUpdate memberUpdateDto) {
         Optional.ofNullable(memberUpdateDto.getName()).ifPresent(name -> this.name = name);
@@ -101,5 +104,28 @@ public class Member {
     public void delete() {
         this.status = MemberStatus.WITHDRAWN;
     }
+
+//    public void usePoints(Integer pointsToUse) {
+//        if (this.points == null) {
+//            this.points = 0;
+//        }
+//        if (pointsToUse == null || pointsToUse <= 0) {
+//            throw new IllegalArgumentException("사용할 포인트는 0보다 커야 합니다.");
+//        }
+//        if (this.points < pointsToUse) {
+//            throw new IllegalArgumentException("포인트가 부족합니다. 현재 포인트: " + this.points);
+//        }
+//        this.points -= pointsToUse;
+//    }
+//
+//    public void addPoints(Integer pointsToAdd) {
+//        if (this.points == null) {
+//            this.points = 0;
+//        }
+//        if (pointsToAdd == null || pointsToAdd < 0) {
+//            throw new IllegalArgumentException("추가할 포인트는 0 이상이어야 합니다.");
+//        }
+//        this.points += pointsToAdd;
+//    }
 
 }

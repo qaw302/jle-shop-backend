@@ -9,8 +9,9 @@ import java.util.stream.Collectors;
 @Getter
 @RequiredArgsConstructor
 public enum OrderProductStatus {
+
     PAYMENT_PENDING("결제대기", StatusType.NORMAL),
-    PAID("결제완료", StatusType.NORMAL),
+    PAYMENT_COMPLETE("결제완료", StatusType.NORMAL),
     PREPARING("배송준비중",  StatusType.SHIPPING),
     IN_TRANSIT("배송중", StatusType.SHIPPING),
     DELEVERED("배송완료", StatusType.SHIPPING),
