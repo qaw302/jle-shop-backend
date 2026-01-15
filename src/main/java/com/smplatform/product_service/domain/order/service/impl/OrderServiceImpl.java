@@ -52,7 +52,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public String saveOrder(String memberId, OrderRequestDto.OrderSave requestDto) {
+    public OrderResponseDto.OrderSaveSuccess saveOrder(String memberId, OrderRequestDto.OrderSave requestDto) {
         Map<Long, OrderRequestDto.OrderItem> requestDtoMap = new HashMap<>();
         Map<Long, OrderResponseDto.ProductOptionFlatDto> savedDtoMap = new HashMap<>();
 
@@ -191,7 +191,7 @@ public class OrderServiceImpl implements OrderService {
             );
         });
 
-        return order.getOrderNumber();
+        return OrderResponseDto.OrderSaveSuccess.of(order);
     }
 
     @Override
