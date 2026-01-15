@@ -1,6 +1,7 @@
 package com.smplatform.product_service.domain.order.dto;
 
 import com.smplatform.product_service.domain.discount.entity.Discount;
+import com.smplatform.product_service.domain.order.entity.Order;
 import com.smplatform.product_service.domain.order.entity.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -72,5 +73,15 @@ public class OrderResponseDto {
         private Integer quantity;
         private Integer orderPrice;
         private String orderProductStatus;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class OrderSaveSuccess {
+        private String orderNumber;
+
+        public static OrderSaveSuccess of(Order order) {
+            return new OrderSaveSuccess(order.getOrderNumber());
+        }
     }
 }
