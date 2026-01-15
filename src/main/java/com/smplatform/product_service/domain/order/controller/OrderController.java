@@ -2,8 +2,17 @@ package com.smplatform.product_service.domain.order.controller;
 
 import com.smplatform.product_service.domain.order.dto.OrderRequestDto;
 import com.smplatform.product_service.domain.order.dto.OrderResponseDto;
+import com.smplatform.product_service.domain.order.dto.OrderSearchRequestDto;
+import com.smplatform.product_service.domain.order.dto.OrderSearchResponseDto;
+import com.smplatform.product_service.domain.order.service.OrderSearchService;
 import com.smplatform.product_service.domain.order.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +22,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 @RestController
 @RequestMapping("/v1/orders")
 @RequiredArgsConstructor
+@Tag(name = "Order", description = "Order management APIs")
 public class OrderController {
     private final OrderService orderService;
+    private final OrderSearchService orderSearchService;
 
     @PostMapping
     @Operation(summary = "주문 결제시 호출하는 API", description = "주문 완료시 해당 API를 호출, cartItemId는 Nullable")
@@ -32,6 +43,7 @@ public class OrderController {
     }
 
     @PutMapping
+    @Operation(summary = "주문 수정", description = "주문 수정 기능 (미구현)")
     public ResponseEntity<?> updateOrder() {
         return null;
     }
@@ -43,5 +55,14 @@ public class OrderController {
             @Parameter(description = "주문 ID") @PathVariable Long orderId) {
         orderService.cancelOrder(memberId, orderId);
         return ResponseEntity.ok("주문이 취소되었습니다.");
+    }
+
+
+    @Operation(summary = "member order list", description = "사용자의 주문내역 조회")
+    @PostMapping("/search")
+    public OrderSearchResponseDto.MemberOrdersGet searchMemberOrders(
+            @RequestHeader("X-MEMBER-ID") String memberId,
+            @RequestBody @Valid OrderSearchRequestDto.MemberOrdersSearch request) {
+        return orderSearchService.getMemberOrders(memberId, request);
     }
 }
