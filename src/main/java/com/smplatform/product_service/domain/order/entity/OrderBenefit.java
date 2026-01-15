@@ -2,9 +2,15 @@ package com.smplatform.product_service.domain.order.entity;
 
 import com.smplatform.product_service.domain.coupon.entity.MemberCoupon;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "order_benefits")
+@Getter
+@AllArgsConstructor
+@NoArgsConstructor
 public class OrderBenefit {
     @Id
     private Long orderId;

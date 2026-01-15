@@ -1,11 +1,13 @@
 package com.smplatform.product_service.domain.order.dto;
 
 import com.smplatform.product_service.domain.discount.entity.Discount;
+import com.smplatform.product_service.domain.order.entity.OrderStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class OrderResponseDto {
     @Getter
@@ -48,5 +50,27 @@ public class OrderResponseDto {
             this.discountStartDate = discountStartDate;
             this.discountEndDate = discountEndDate;
         }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class OrderDetail {
+        private Long orderId;
+        private String orderTitle;
+        private LocalDateTime orderDate;
+        private Integer totalPrice;
+        private OrderStatus orderStatus;
+        private List<OrderProductInfo> products;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static class OrderProductInfo {
+        private Long orderProductId;
+        private String productName;
+        private String productOptionName;
+        private Integer quantity;
+        private Integer orderPrice;
+        private String orderProductStatus;
     }
 }
