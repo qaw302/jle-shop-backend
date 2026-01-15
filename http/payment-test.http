@@ -1,7 +1,16 @@
+### 토스 페이먼츠 테스트 가이드
+# 
+# 1. 먼저 주문을 생성합니다
+# 2. 생성된 orderId를 사용해서 결제 승인을 테스트합니다
+# 
+# 주의: 실제로는 프론트엔드에서 토스 위젯을 통해 paymentKey를 받아야 하지만,
+# 테스트를 위해 임의의 값으로 시뮬레이션할 수 있습니다.
+# 하지만 실제 토스 API는 유효한 paymentKey가 필요하므로 에러가 발생할 수 있습니다.
+
 ### 1. 카테고리 생성 (상품은 반드시 카테고리가 있어야 등록 가능)
 POST http://localhost:8080/v1/categories
 content-type:application/json
-X-MEMBER-ID: jle
+X-MEMBER-ID: asdf
 ROLE: ADMIN
 
 {
@@ -12,7 +21,7 @@ ROLE: ADMIN
 ### 1-1. 하위 카테고리 생성
 POST localhost:8080/v1/categories
 content-type:application/json
-X-MEMBER-ID: jle
+X-MEMBER-ID: asdf
 ROLE: ADMIN
 
 {
@@ -21,10 +30,14 @@ ROLE: ADMIN
   "categoryLevel": 2
 }
 
+### 1-2. 카테고리 전체 조회
+GET localhost:8080/v1/categories
+
+
 ### 2. 제품 등록 ({옵션-상품옵션 테이블 자동등록}, {태그-기존태그 존재시 only 상품태그 저장, 기존태그 부재시 태그 테이블 & 상품 태그 테이블 저장}, {썸네일-자동 등록})
 POST http://localhost:8080/v1/products
 Content-Type: application/json
-X-MEMBER-ID: jle
+X-MEMBER-ID: test
 ROLE: ADMIN
 
 {
@@ -62,10 +75,14 @@ ROLE: ADMIN
   ]
 }
 
+### 1-3. 제품-카테고리 매핑 테이블 전체 조회
+GET localhost:8080/v1/product-category
+ROLE:ADMIN
+
 ### 3. 할인 저장
 POST localhost:8080/v1/discounts
 content-type: application/json
-X-MEMBER-ID: jle
+X-MEMBER-ID: asdf
 ROLE: ADMIN
 
 {
@@ -73,96 +90,21 @@ ROLE: ADMIN
   "discountType": "할인율",
   "discountValue": 20,
   "discountStartDate": "2025-07-01T00:00:00.000Z",
-  "discountEndDate": "2025-07-29T00:00:00.000Z",
+  "discountEndDate": "2026-07-29T00:00:00.000Z",
   "applyType": 2,
-  "ids": [3]
+  "ids": [1]
 }
 
 ### 4. 할인 조회
 GET localhost:8080/v1/discounts
 
-
-### 5. (할인 포함) 제품 등록
-POST http://localhost:8080/v1/products
-Content-Type: application/json
-X-MEMBER-ID: jle
+### 5. 관리자용 전체 제품 조회 (페이지네이션)
+POST http://localhost:8080/v1/products/read?page=0&size=3
+X-MEMBER-ID: asdf
 ROLE: ADMIN
 
-{
-  "name": "바지1",
-  "description": "description.",
-  "categoryId": 1,
-  "price": 139900,
-  "discountId": 1,
-  "summaryDescription": "할인 포함된 제품입니다.",
-  "simpleDescription": "할인 포함",
-  "productOptions": [
-    {
-      "productOptionName": "black/L",
-      "productOptionDetails": [
-        {
-          "productOptionType": "color",
-          "productOptionDetailName": "black"
-        },
-        {
-          "productOptionType": "size",
-          "productOptionDetailName": "L"
-        }
-      ],
-      "stockQuantity": 10,
-      "additionalPrice": 0
-    },
-    {
-      "productOptionName": "black/M",
-      "productOptionDetails": [
-        {
-          "productOptionType": "color",
-          "productOptionDetailName": "black"
-        },
-        {
-          "productOptionType": "size",
-          "productOptionDetailName": "M"
-        }
-      ],
-      "stockQuantity": 10,
-      "additionalPrice": 0
-    },
-    {
-      "productOptionName": "white/L",
-      "productOptionDetails": [
-        {
-          "productOptionType": "color",
-          "productOptionDetailName": "white"
-        },
-        {
-          "productOptionType": "size",
-          "productOptionDetailName": "L"
-        }
-      ],
-      "stockQuantity": 10,
-      "additionalPrice": 1000
-    }
-  ],
-  "thumbnail": "/thm/path",
-  "productImages": {
-    "paths": [
-      "/path/1",
-      "/path/2",
-      "/path/3"
-    ]
-  },
-  "tags": [
-    {
-      "tagName": "진짜 멋진거"
-    },
-    {
-      "tagName": "진짜 chill한거"
-    }
-  ]
-}
-
-### 6. 회원 등록
-POST  http://localhost:8080/v1/members
+### 1단계: 회원 생성 (필요시)
+POST http://localhost:8080/v1/members
 Content-Type: application/json
 
 {
@@ -177,8 +119,7 @@ Content-Type: application/json
   "marketingAgreement": true
 }
 
-
-### 7. 주문 저장
+### 2단계: 주문 생성 (orderId 획득)
 POST http://localhost:8080/v1/orders
 Content-Type: application/json
 X-MEMBER-ID: test@test.com
@@ -197,43 +138,74 @@ X-MEMBER-ID: test@test.com
       "productId": 1,
       "productOptionId": 1,
       "quantity": 2
-    },
-    {
-      "productId": 2,
-      "productOptionId": 2,
-      "quantity": 1
     }
   ],
   "paymentMethod": "CARD",
   "orderDetail": {
-    "originalTotal": 176566,
-    "discountedTotal": 27980,
-    "productDiscount": 27980,
+    "originalTotal": 36666,
+    "discountedTotal": 30666,
+    "productDiscount": 0,
     "additionalDiscount": 0,
     "shippingFee": 0,
-    "finalAmount": 148586
+    "finalAmount": 30666
   }
 }
 
-
-### 8. 사용자 주문내역 조회
-POST http://localhost:8080/v1/orders/search
+### 3단계: 결제 승인 (실제로는 토스 위젯에서 받은 데이터 사용)
+# 주의: 이 요청은 유효한 paymentKey가 없으면 실패합니다
+# 실제 paymentKey는 토스 결제 위젯을 통해서만 얻을 수 있습니다
+POST http://localhost:8080/v1/payments/confirm
 Content-Type: application/json
+
+{
+  "paymentKey": "test_payment_key_12345",
+  "orderId": "ORD20260115222351538",
+  "amount": 36666
+}
+
+### 4단계: 주문 상세 조회 (결제 후 확인)
+GET http://localhost:8080/v1/orders/1
 X-MEMBER-ID: test@test.com
+
+### 주문내역 리스트 조회
+POST http://localhost:8080/v1/orders/search
+X-MEMBER-ID: test@test.com
+Content-Type: application/json
 
 {
   "conditions": {
     "type": "ALL",
-    "status": null,
-    "startDate": "2025-01-01",
-    "endDate": "2025-07-12"
+    "status": "PAYMENT_PENDING",
+    "startDate": "2025-01-15",
+    "endDate": "2026-01-15"
   },
   "pageable": {
     "page": 0,
-    "size": 10,
+    "size": 100,
     "sort": {
-      "direction": "desc",
-      "properties": ["orderDate"]
+      "direction": "ASC",
+      "properties": [
+        "orderDate"
+      ]
     }
   }
+}
+### 5단계: 주문 취소 테스트
+DELETE http://localhost:8080/v1/orders/1
+X-MEMBER-ID: test@test.com
+
+### ===============================================
+### 실제 토스 API 테스트 (직접 토스 API 호출)
+### ===============================================
+
+### 토스 API로 직접 결제 승인 요청 (실제 토스 서버)
+# 주의: 이것도 유효한 paymentKey가 필요합니다
+POST https://api.tosspayments.com/v1/payments/confirm
+Content-Type: application/json
+Authorization: Basic dGVzdF9za19aMWFPd1g3SzhtWW9BTzVhZDJxOTh5UXh6dk5QOg==
+
+{
+  "paymentKey": "test_payment_key",
+  "orderId": "test_order_123",
+  "amount": 148586
 }
