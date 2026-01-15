@@ -70,7 +70,10 @@ public class OrderServiceImpl implements OrderService {
         AtomicInteger discountedTotalPrice = new AtomicInteger();
         productOptionFlatDtos.forEach(unit -> {
             if (requestDtoMap.get(unit.getProductOptionId()).getQuantity() > unit.getStockQuantity()) {
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("재고 수량보다 주문 수량이 많습니다. productOptionId="
+                        + unit.getProductOptionId()
+                        + ", 요청=" + requestDtoMap.get(unit.getProductOptionId()).getQuantity()
+                        + ", 재고=" + unit.getStockQuantity());
             }
 
             originalTotalPrice.addAndGet((unit.getPrice() + unit.getAdditionalPrice())
