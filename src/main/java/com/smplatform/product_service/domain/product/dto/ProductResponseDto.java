@@ -32,7 +32,7 @@ public class ProductResponseDto {
         private boolean isSelling;
         private LocalDateTime createdAt;
         private int price;
-        private Integer discountId;
+        private Long discountId;
         private String summaryDescription;
         private String simpleDescription;
         private int discountedPrice;

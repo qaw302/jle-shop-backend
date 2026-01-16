@@ -143,11 +143,11 @@ X-MEMBER-ID: test@test.com
   "paymentMethod": "CARD",
   "orderDetail": {
     "originalTotal": 36666,
-    "discountedTotal": 30666,
+    "discountedTotal": 36666,
     "productDiscount": 0,
     "additionalDiscount": 0,
     "shippingFee": 0,
-    "finalAmount": 30666
+    "finalAmount": 36666
   }
 }
 
@@ -177,7 +177,7 @@ Content-Type: application/json
     "type": "ALL",
     "status": "PAYMENT_PENDING",
     "startDate": "2025-01-15",
-    "endDate": "2026-01-15"
+    "endDate": "2026-01-19"
   },
   "pageable": {
     "page": 0,

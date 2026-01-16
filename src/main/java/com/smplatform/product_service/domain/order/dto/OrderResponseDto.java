@@ -36,7 +36,7 @@ public class OrderResponseDto {
         private final int price;
 
         @Schema(description = "할인 ID", example = "10")
-        private final Integer discountId;
+        private final Long discountId;
         @Schema(description = "할인 타입", example = "RATE")
         private final Discount.Type discountType;
         @Schema(description = "할인 값", example = "10")
@@ -51,7 +51,7 @@ public class OrderResponseDto {
 
         public ProductOptionFlatDto(Long productOptionId, String productOptionName, int stockQuantity, int additionalPrice,
                                     Long productId, String name, boolean isDeleted, boolean isSelling, int price,
-                                    Integer discountId, Discount.Type discountType, int discountValue,
+                                    Long discountId, Discount.Type discountType, int discountValue,
                                     LocalDateTime discountStartDate, LocalDateTime discountEndDate) {
             this.productOptionId = productOptionId;
             this.productOptionName = productOptionName;

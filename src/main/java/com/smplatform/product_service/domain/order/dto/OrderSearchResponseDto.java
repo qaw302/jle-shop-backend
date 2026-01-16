@@ -70,7 +70,7 @@ public class OrderSearchResponseDto {
         @Schema(description = "주문 금액", example = "23000")
         private long price;
         @Schema(description = "할인 ID", example = "10")
-        private long discountId;
+        private Long discountId;
         @Schema(description = "할인 타입", example = "RATE")
         private Discount.Type discountType;
         @Schema(description = "주문 상품 상태", example = "PAID")
@@ -85,8 +85,7 @@ public class OrderSearchResponseDto {
                     orderProduct.getOrderPrice(),
                     orderProduct.getDiscountId(),
                     orderProduct.getDiscountType(),
-                    orderProduct.getOrderProductStatus()
-            );
+                    orderProduct.getOrderProductStatus());
         }
     }
 }
