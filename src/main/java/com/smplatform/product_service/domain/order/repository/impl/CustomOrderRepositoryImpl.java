@@ -22,23 +22,22 @@ public class CustomOrderRepositoryImpl implements CustomOrderRepository {
         QDiscount discount = QDiscount.discount;
 
         return jpaQueryFactory.select(Projections.constructor(OrderResponseDto.ProductOptionFlatDto.class,
-                        productOption.productOptionId,
-                        productOption.productOptionName,
-                        productOption.stockQuantity,
-                        productOption.additionalPrice,
+                productOption.productOptionId,
+                productOption.productOptionName,
+                productOption.stockQuantity,
+                productOption.additionalPrice,
 
-                        product.productId,
-                        product.name,
-                        product.isDeleted,
-                        product.isSelling,
-                        product.price,
+                product.productId,
+                product.name,
+                product.isDeleted,
+                product.isSelling,
+                product.price,
 
-                        discount.discountId,
-                        discount.discountType,
-                        discount.discountValue,
-                        discount.discountStartDate,
-                        discount.discountEndDate
-                ))
+                discount.discountId,
+                discount.discountType,
+                discount.discountValue,
+                discount.discountStartDate,
+                discount.discountEndDate))
                 .from(productOption)
                 .join(productOption.product, product)
                 .leftJoin(product.discount, discount)

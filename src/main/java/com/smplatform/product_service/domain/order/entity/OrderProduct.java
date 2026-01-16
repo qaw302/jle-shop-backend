@@ -37,7 +37,7 @@ public class OrderProduct {
     @Column(name = "product_name")
     private String productName;
     @Column(name = "discount_id")
-    private Integer discountId;
+    private Long discountId;
     @Column(name = "discount_type")
     private Discount.Type discountType;
     @Column(name = "disocunt_value")

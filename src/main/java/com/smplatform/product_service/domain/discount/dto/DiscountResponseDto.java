@@ -14,7 +14,7 @@ public class DiscountResponseDto {
     @AllArgsConstructor
     public static class DiscountInfo {
 
-        private int discountId;
+        private long discountId;
 
         private String discountName;
 

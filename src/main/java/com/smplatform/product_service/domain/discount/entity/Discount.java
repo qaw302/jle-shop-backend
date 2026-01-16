@@ -16,7 +16,7 @@ public class Discount {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int discountId;
+    private long discountId;
     @Column(name = "discount_name")
     private String discountName;
     @Column(name = "discount_type")
@@ -91,4 +91,3 @@ public class Discount {
     }
 
 }
-
