@@ -1,8 +1,6 @@
 package com.smplatform.product_service.advice;
 
 import com.smplatform.product_service.domain.category.exception.AbstractCategoryException;
-import com.smplatform.product_service.domain.coupon.exception.AbstractCouponException;
-import com.smplatform.product_service.domain.member.exception.AbstractMemberException;
 import com.smplatform.product_service.domain.product.exception.ThumbnailNotFoundException;
 import com.smplatform.product_service.exception.AbstractApiException;
 import com.smplatform.product_service.exception.DiscountNotFoundException;
@@ -38,24 +36,25 @@ public class ProductControllerAdvice {
      */
     @ExceptionHandler(AbstractCategoryException.class)
     public ResponseEntity<String> handleAbstractCategoryException(AbstractCategoryException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(e.getHttpStatus()).body(e.getMessage());
     }
 
     @ExceptionHandler(ProductStateNotFoundException.class)
     public ResponseEntity<String> handleProductStateNotFoundException(DiscountNotFoundException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
 
     @ExceptionHandler(ThumbnailNotFoundException.class)
     public ResponseEntity<String> handleThumbnailNotFoundException(ThumbnailNotFoundException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
-
 
     /**
      * // 도메인 이외의 서버 예외처리
      */
-
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleException(Exception e) {
@@ -73,6 +72,7 @@ public class ProductControllerAdvice {
 
     @ExceptionHandler(HandlerMethodValidationException.class)
     public ResponseEntity<String> handleHandlerMethodValidationException(HandlerMethodValidationException e) {
+        log.error(e.getMessage(), e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Arrays.toString(e.getDetailMessageArguments()));
     }
 }

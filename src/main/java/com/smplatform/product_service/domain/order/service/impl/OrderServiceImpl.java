@@ -25,8 +25,11 @@ import com.smplatform.product_service.domain.product.exception.ProductNotFoundEx
 import com.smplatform.product_service.domain.product.exception.ProductOptionNotFoundException;
 import com.smplatform.product_service.domain.product.repository.ProductOptionRepository;
 import com.smplatform.product_service.domain.product.repository.ProductRepository;
+import com.smplatform.product_service.exception.BadRequestException;
 import com.smplatform.product_service.exception.UnauthorizedException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +40,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -62,8 +66,7 @@ public class OrderServiceImpl implements OrderService {
                 requestDto.getItems().stream().map(orderItem -> {
                     requestDtoMap.put(orderItem.getProductOptionId(), orderItem);
                     return orderItem.getProductOptionId();
-                }).toList()
-        );
+                }).toList());
 
         // 할인 정보 불러오기, 실제 제품에 할인 가격 적용
         AtomicInteger originalTotalPrice = new AtomicInteger();
@@ -83,7 +86,7 @@ public class OrderServiceImpl implements OrderService {
                 int unitPrice = productRepository.findByProductId(unit.getProductId())
                         .orElseThrow(() -> new ProductNotFoundException("product not found"))
                         .getDiscountedPrice() + unit.getAdditionalPrice();
-                System.out.println("이거슨 unit price : " + unitPrice);
+                log.debug("original unit price : " + unitPrice);
                 unit.setUnitTotalPrice(unitPrice);
                 discountedTotalPrice.addAndGet(unitPrice * requestDtoMap.get(unit.getProductOptionId()).getQuantity());
             } else {
@@ -106,11 +109,12 @@ public class OrderServiceImpl implements OrderService {
                         .map(MemberCouponResponseDto.MemberCouponInfo::getCouponId).toList()
                         .contains(requestDto.getOrderDiscount().getCouponId())) {
                     throw new CouponNotFoundException(
-                            String.format("%s 회원님은 %s 쿠폰을 가지고 있지 않습니다.", memberId, requestDto.getOrderDiscount().getCouponId())
-                    );
+                            String.format("%s 회원님은 %s 쿠폰을 가지고 있지 않습니다.", memberId,
+                                    requestDto.getOrderDiscount().getCouponId()));
                 }
                 Coupon coupon = couponRepository.findById(requestDto.getOrderDiscount().getCouponId())
-                        .orElseThrow(() -> new CouponNotFoundException(String.format("coupon : %s not found", requestDto.getOrderDiscount().getCouponId())));
+                        .orElseThrow(() -> new CouponNotFoundException(
+                                String.format("coupon : %s not found", requestDto.getOrderDiscount().getCouponId())));
 
                 if (!coupon.isAvailable()) {
                     throw new IllegalArgumentException("coupon 사용 가능 기간을 넘거나 도달 하지 못했습니다.");
@@ -119,30 +123,43 @@ public class OrderServiceImpl implements OrderService {
             }
 
             // 포인트 처리
-//            if (requestDto.getOrderDiscount().getPoints() != null && requestDto.getOrderDiscount().getPoints() > 0) {
-//                if (member.getPoints() == null || member.getPoints() < requestDto.getOrderDiscount().getPoints()) {
-//                    throw new IllegalArgumentException(
-//                        String.format("포인트가 부족합니다. 보유 포인트: %d, 사용 요청: %d",
-//                            member.getPoints() != null ? member.getPoints() : 0,
-//                            requestDto.getOrderDiscount().getPoints())
-//                    );
-//                }
-//                pointDiscount = requestDto.getOrderDiscount().getPoints();
-//                // 포인트 차감
-//                member.usePoints(pointDiscount);
-//            }
+            // if (requestDto.getOrderDiscount().getPoints() != null &&
+            // requestDto.getOrderDiscount().getPoints() > 0) {
+            // if (member.getPoints() == null || member.getPoints() <
+            // requestDto.getOrderDiscount().getPoints()) {
+            // throw new IllegalArgumentException(
+            // String.format("포인트가 부족합니다. 보유 포인트: %d, 사용 요청: %d",
+            // member.getPoints() != null ? member.getPoints() : 0,
+            // requestDto.getOrderDiscount().getPoints())
+            // );
+            // }
+            // pointDiscount = requestDto.getOrderDiscount().getPoints();
+            // // 포인트 차감
+            // member.usePoints(pointDiscount);
+            // }
         }
 
         // 실제 가격 계산 및 검증
-        int finalPrice = discountedTotalPrice.get() - couponDiscount - pointDiscount + requestDto.getOrderDetail().getShippingFee();
+        int finalPrice = discountedTotalPrice.get() - couponDiscount - pointDiscount
+                + requestDto.getOrderDetail().getShippingFee();
 
-        System.out.println("이거시 진짜 최종 가격 : " + finalPrice);
+        log.debug("최종 가격 : " + finalPrice);
         if (requestDto.getOrderDetail().getFinalAmount() != finalPrice) {
-            throw new IllegalArgumentException("주문 가격이 일치하지 않습니다");
+            log.error("주문 가격 불일치 - memberId: {}, 요청가격: {}, 계산가격: {}, 상세정보 [할인된상품금액: {}, 쿠폰할인: {}, 포인트할인: {}, 배송비: {}]",
+                    memberId,
+                    requestDto.getOrderDetail().getFinalAmount(),
+                    finalPrice,
+                    discountedTotalPrice.get(),
+                    couponDiscount,
+                    pointDiscount,
+                    requestDto.getOrderDetail().getShippingFee());
+            throw new BadRequestException(String.format("주문 가격이 일치하지 않습니다 (요청: %d, 계산: %d)",
+                    requestDto.getOrderDetail().getFinalAmount(), finalPrice));
         }
 
         String orderTitle = productOptionRepository.findById(requestDto.getItems().get(0).getProductOptionId())
-                .orElseThrow(() -> new ProductOptionNotFoundException(String.format("제품 %s이 존재하지 않습니다.", requestDto.getItems().get(0).getProductOptionId())))
+                .orElseThrow(() -> new ProductOptionNotFoundException(
+                        String.format("제품 %s이 존재하지 않습니다.", requestDto.getItems().get(0).getProductOptionId())))
                 .getProduct().getName();
 
         if (requestDto.getItems().size() > 1) {
@@ -151,8 +168,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 할인 및 배송 엔티티 저장
         Order order = orderRepository.save(
-                new Order(null, null, member, null, finalPrice, OrderStatus.PROGRESSING, orderTitle)
-        );
+                new Order(null, null, member, null, finalPrice, OrderStatus.PROGRESSING, orderTitle));
         Delivery delivery = deliveryRepository.save(
                 new Delivery(
                         0L,
@@ -163,9 +179,7 @@ public class OrderServiceImpl implements OrderService {
                         requestDto.getAddressInfo().getAddress1(),
                         requestDto.getAddressInfo().getAddress2(),
                         requestDto.getAddressInfo().getReceiver(),
-                        requestDto.getAddressInfo().getPhoneNumber()
-                )
-        );
+                        requestDto.getAddressInfo().getPhoneNumber()));
 
         // 장바구니 아이템이라면 장바구니 아이템 삭제
         requestDto.getItems().forEach(orderItem -> {
@@ -186,9 +200,7 @@ public class OrderServiceImpl implements OrderService {
                             savedDtoMap.get(orderItem.getProductOptionId()).getName(),
                             savedDtoMap.get(orderItem.getProductOptionId()).getDiscountId(),
                             savedDtoMap.get(orderItem.getProductOptionId()).getDiscountType(),
-                            savedDtoMap.get(orderItem.getProductOptionId()).getDiscountValue()
-                    )
-            );
+                            savedDtoMap.get(orderItem.getProductOptionId()).getDiscountValue()));
         });
 
         return OrderResponseDto.OrderSaveSuccess.of(order);
@@ -199,7 +211,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDto.OrderDetail getOrderDetail(String memberId, Long orderId) {
         // 주문 조회
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new OrderNotFoundException("주문을 찾을 수 없습니다: " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException("주문을 찾을 수 없습니다: " + orderId));
 
         // 권한 확인 (본인의 주문만 조회 가능)
         if (!order.getMember().getMemberId().equals(memberId)) {
@@ -211,24 +223,22 @@ public class OrderServiceImpl implements OrderService {
 
         // DTO 변환
         List<OrderResponseDto.OrderProductInfo> productInfos = orderProducts.stream()
-            .map(op -> new OrderResponseDto.OrderProductInfo(
-                op.getOrderProductId(),
-                op.getProductName(),
-                op.getProductOptionName(),
-                op.getQuantity(),
-                op.getOrderPrice(),
-                op.getOrderProductStatus() != null ? op.getOrderProductStatus().getLabel() : "상태 없음"
-            ))
-            .collect(Collectors.toList());
+                .map(op -> new OrderResponseDto.OrderProductInfo(
+                        op.getOrderProductId(),
+                        op.getProductName(),
+                        op.getProductOptionName(),
+                        op.getQuantity(),
+                        op.getOrderPrice(),
+                        op.getOrderProductStatus() != null ? op.getOrderProductStatus().getLabel() : "상태 없음"))
+                .collect(Collectors.toList());
 
         return new OrderResponseDto.OrderDetail(
-            order.getOrderId(),
-            order.getOrderTitle(),
-            order.getOrderDate(),
-            order.getTotalPrice(),
-            order.getOrderStatus(),
-            productInfos
-        );
+                order.getOrderId(),
+                order.getOrderTitle(),
+                order.getOrderDate(),
+                order.getTotalPrice(),
+                order.getOrderStatus(),
+                productInfos);
     }
 
     @Override
@@ -236,7 +246,7 @@ public class OrderServiceImpl implements OrderService {
     public void cancelOrder(String memberId, Long orderId) {
         // 주문 조회
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderId));
 
         // 권한 확인 (본인의 주문만 취소 가능)
         if (!order.getMember().getMemberId().equals(memberId)) {
@@ -258,13 +268,13 @@ public class OrderServiceImpl implements OrderService {
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
         for (OrderProduct orderProduct : orderProducts) {
             // 결제 완료 상태인 경우에만 재고 복구
-            if (orderProduct.getOrderProductStatus() != null && 
-                orderProduct.getOrderProductStatus().getType() != OrderProductStatus.StatusType.CANCEL_RETURN_EXCHANGE) {
-                
+            if (orderProduct.getOrderProductStatus() != null &&
+                    orderProduct.getOrderProductStatus()
+                            .getType() != OrderProductStatus.StatusType.CANCEL_RETURN_EXCHANGE) {
+
                 ProductOption productOption = productOptionRepository.findById(orderProduct.getProductOptionId())
-                    .orElseThrow(() -> new ProductOptionNotFoundException(
-                        "상품 옵션을 찾을 수 없습니다: " + orderProduct.getProductOptionId()
-                    ));
+                        .orElseThrow(() -> new ProductOptionNotFoundException(
+                                "상품 옵션을 찾을 수 없습니다: " + orderProduct.getProductOptionId()));
 
                 // 재고 복구
                 productOption.increaseStock(orderProduct.getQuantity());
@@ -283,7 +293,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDto.OrderDetail getOrderDetailByOrderNumber(String memberId, String orderNumber) {
         // 주문 조회
         Order order = orderRepository.findByOrderNumber(orderNumber)
-            .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderNumber));
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다: " + orderNumber));
 
         // 권한 확인 (본인의 주문만 조회 가능)
         if (!order.getMember().getMemberId().equals(memberId)) {
@@ -295,23 +305,21 @@ public class OrderServiceImpl implements OrderService {
 
         // DTO 변환
         List<OrderResponseDto.OrderProductInfo> productInfos = orderProducts.stream()
-            .map(op -> new OrderResponseDto.OrderProductInfo(
-                op.getOrderProductId(),
-                op.getProductName(),
-                op.getProductOptionName(),
-                op.getQuantity(),
-                op.getOrderPrice(),
-                op.getOrderProductStatus() != null ? op.getOrderProductStatus().getLabel() : "상태 없음"
-            ))
-            .collect(Collectors.toList());
+                .map(op -> new OrderResponseDto.OrderProductInfo(
+                        op.getOrderProductId(),
+                        op.getProductName(),
+                        op.getProductOptionName(),
+                        op.getQuantity(),
+                        op.getOrderPrice(),
+                        op.getOrderProductStatus() != null ? op.getOrderProductStatus().getLabel() : "상태 없음"))
+                .collect(Collectors.toList());
 
         return new OrderResponseDto.OrderDetail(
-            order.getOrderId(),
-            order.getOrderTitle(),
-            order.getOrderDate(),
-            order.getTotalPrice(),
-            order.getOrderStatus(),
-            productInfos
-        );
+                order.getOrderId(),
+                order.getOrderTitle(),
+                order.getOrderDate(),
+                order.getTotalPrice(),
+                order.getOrderStatus(),
+                productInfos);
     }
 }

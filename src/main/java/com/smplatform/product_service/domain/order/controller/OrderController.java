@@ -7,10 +7,6 @@ import com.smplatform.product_service.domain.order.dto.OrderSearchResponseDto;
 import com.smplatform.product_service.domain.order.service.OrderSearchService;
 import com.smplatform.product_service.domain.order.service.OrderService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +26,7 @@ public class OrderController {
     @PostMapping
     @Operation(summary = "주문 결제시 호출하는 API", description = "주문 완료시 해당 API를 호출, cartItemId는 Nullable")
     public ResponseEntity<OrderResponseDto.OrderSaveSuccess> saveOrder(@RequestHeader(name = "X-MEMBER-ID") String id,
-                                                                       @RequestBody OrderRequestDto.OrderSave requestDto) {
+            @RequestBody OrderRequestDto.OrderSave requestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.saveOrder(id, requestDto));
     }
 
@@ -56,7 +52,6 @@ public class OrderController {
         orderService.cancelOrder(memberId, orderId);
         return ResponseEntity.ok("주문이 취소되었습니다.");
     }
-
 
     @Operation(summary = "member order list", description = "사용자의 주문내역 조회")
     @PostMapping("/search")

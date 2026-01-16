@@ -41,10 +41,10 @@ public class OrderSearchResponseDto {
         private String mainProductName;
         @Schema(description = "상품 개수", example = "2")
         private int productCount;
-
         @Setter
         @Schema(description = "주문 상품 목록")
         private List<OrderProductDto> products;
+        
 
         @QueryProjection
         public MemberOrder(long orderId, LocalDateTime orderDate, String productName, int productCount) {

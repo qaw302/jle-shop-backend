@@ -11,7 +11,7 @@ ROLE: ADMIN
   "minOrderPrice": 50000 ,
   "maxDiscountPrice": 1000,
   "couponStartDate": "2025-04-02",
-  "couponEndDate": "2025-04-05",
+  "couponEndDate": "2028-04-05",
   "issueType": "AUTO",
   "couponIssueCode": "",
   "comment": ""
@@ -75,16 +75,16 @@ ROLE: ADMIN
 ### 쿠폰 삭제
 POST http://localhost:8080/v1/coupons/delete
 Content-Type: application/json
-X-MEMBER-ID: jle
+X-MEMBER-ID: test@test.com
 ROLE: ADMIN
 
 {
-  "couponId": 1
+  "couponId": 2
 }
 
 ### 쿠폰발급
 POST http://localhost:8080/v1/coupons/issue
-X-MEMBER-ID: jle
+X-MEMBER-ID: test@test.com
 Content-Type: application/json
 
 {
@@ -93,4 +93,4 @@ Content-Type: application/json
 
 ### 보유 쿠폰 조회
 GET http://localhost:8080/v1/members/me/coupons
-X-MEMBER-ID: jle
+X-MEMBER-ID: test@test.com
