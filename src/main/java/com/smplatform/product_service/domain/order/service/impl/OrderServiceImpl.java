@@ -3,8 +3,10 @@ package com.smplatform.product_service.domain.order.service.impl;
 import com.smplatform.product_service.domain.cart.repository.CartItemRepository;
 import com.smplatform.product_service.domain.coupon.dto.MemberCouponResponseDto;
 import com.smplatform.product_service.domain.coupon.entity.Coupon;
+import com.smplatform.product_service.domain.coupon.entity.MemberCoupon;
 import com.smplatform.product_service.domain.coupon.exception.CouponNotFoundException;
 import com.smplatform.product_service.domain.coupon.repository.CouponRepository;
+import com.smplatform.product_service.domain.coupon.repository.MemberCouponRepository;
 import com.smplatform.product_service.domain.coupon.service.MemberCouponService;
 import com.smplatform.product_service.domain.member.entity.Delivery;
 import com.smplatform.product_service.domain.member.entity.Member;
@@ -13,10 +15,12 @@ import com.smplatform.product_service.domain.member.repository.MemberRepository;
 import com.smplatform.product_service.domain.order.dto.OrderRequestDto;
 import com.smplatform.product_service.domain.order.dto.OrderResponseDto;
 import com.smplatform.product_service.domain.order.entity.Order;
+import com.smplatform.product_service.domain.order.entity.OrderBenefit;
 import com.smplatform.product_service.domain.order.entity.OrderProduct;
 import com.smplatform.product_service.domain.order.entity.OrderProductStatus;
 import com.smplatform.product_service.domain.order.entity.OrderStatus;
 import com.smplatform.product_service.domain.order.exception.OrderNotFoundException;
+import com.smplatform.product_service.domain.order.repository.OrderBenefitRepository;
 import com.smplatform.product_service.domain.order.repository.OrderProductRepository;
 import com.smplatform.product_service.domain.order.repository.OrderRepository;
 import com.smplatform.product_service.domain.order.service.OrderService;
@@ -53,6 +57,8 @@ public class OrderServiceImpl implements OrderService {
     private final OrderProductRepository orderProductRepository;
     private final CouponRepository couponRepository;
     private final MemberCouponService memberCouponService;
+    private final OrderBenefitRepository orderBenefitRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
     @Override
     @Transactional
@@ -100,18 +106,20 @@ public class OrderServiceImpl implements OrderService {
 
         int couponDiscount = 0;
         int pointDiscount = 0;
+        MemberCoupon usedMemberCoupon = null;
 
         // 사용자 쿠폰 및 포인트 불러오기, 쿠폰 및 포인트 적용 가능한지 검증
         if (requestDto.getOrderDiscount() != null) {
             // 쿠폰 처리
             if (requestDto.getOrderDiscount().getCouponId() != null) {
-                if (!memberCouponService.getCoupons(memberId).stream()
-                        .map(MemberCouponResponseDto.MemberCouponInfo::getCouponId).toList()
-                        .contains(requestDto.getOrderDiscount().getCouponId())) {
-                    throw new CouponNotFoundException(
-                            String.format("%s 회원님은 %s 쿠폰을 가지고 있지 않습니다.", memberId,
-                                    requestDto.getOrderDiscount().getCouponId()));
-                }
+                List<MemberCouponResponseDto.MemberCouponInfo> memberCoupons = memberCouponService.getCoupons(memberId);
+                MemberCouponResponseDto.MemberCouponInfo matchedCoupon = memberCoupons.stream()
+                        .filter(mc -> mc.getCouponId().equals(requestDto.getOrderDiscount().getCouponId()))
+                        .findFirst()
+                        .orElseThrow(() -> new CouponNotFoundException(
+                                String.format("%s 회원님은 %s 쿠폰을 가지고 있지 않습니다.", memberId,
+                                        requestDto.getOrderDiscount().getCouponId())));
+
                 Coupon coupon = couponRepository.findById(requestDto.getOrderDiscount().getCouponId())
                         .orElseThrow(() -> new CouponNotFoundException(
                                 String.format("coupon : %s not found", requestDto.getOrderDiscount().getCouponId())));
@@ -120,6 +128,11 @@ public class OrderServiceImpl implements OrderService {
                     throw new IllegalArgumentException("coupon 사용 가능 기간을 넘거나 도달 하지 못했습니다.");
                 }
                 couponDiscount = coupon.calculateDiscountedPrice(discountedTotalPrice.get());
+                
+                // OrderBenefit 저장을 위해 MemberCoupon 조회
+                usedMemberCoupon = memberCouponRepository.findById(matchedCoupon.getMemberCouponId())
+                        .orElseThrow(() -> new CouponNotFoundException(
+                                String.format("memberCoupon : %s not found", matchedCoupon.getMemberCouponId())));
             }
 
             // 포인트 처리
@@ -203,6 +216,19 @@ public class OrderServiceImpl implements OrderService {
                             savedDtoMap.get(orderItem.getProductOptionId()).getDiscountValue()));
         });
 
+        // OrderBenefit 저장 (쿠폰 또는 포인트 사용 시)
+        if (couponDiscount > 0 || pointDiscount > 0) {
+            Long totalBenefit = (long) (couponDiscount + pointDiscount);
+            OrderBenefit orderBenefit = new OrderBenefit(
+                    null, // @MapsId를 사용하므로 orderId는 null로 설정
+                    order,
+                    pointDiscount,
+                    couponDiscount,
+                    usedMemberCoupon,
+                    totalBenefit);
+            orderBenefitRepository.save(orderBenefit);
+        }
+
         return OrderResponseDto.OrderSaveSuccess.of(order);
     }
 
@@ -221,24 +247,79 @@ public class OrderServiceImpl implements OrderService {
         // 주문 상품 목록 조회
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
 
-        // DTO 변환
-        List<OrderResponseDto.OrderProductInfo> productInfos = orderProducts.stream()
-                .map(op -> new OrderResponseDto.OrderProductInfo(
-                        op.getOrderProductId(),
-                        op.getProductName(),
-                        op.getProductOptionName(),
-                        op.getQuantity(),
-                        op.getOrderPrice(),
-                        op.getOrderProductStatus() != null ? op.getOrderProductStatus().getLabel() : "상태 없음"))
+        // 상품 정보 DTO 변환
+        List<OrderResponseDto.OrderProduct> products = orderProducts.stream()
+                .map(op -> {
+                    // 옵션명을 파싱 (예: "화이트 / M" -> ["화이트", "M"])
+                    List<OrderResponseDto.ProductOption> options = new java.util.ArrayList<>();
+                    if (op.getProductOptionName() != null) {
+                        String[] optionParts = op.getProductOptionName().split(" / ");
+                        for (String optionPart : optionParts) {
+                            options.add(new OrderResponseDto.ProductOption(optionPart.trim()));
+                        }
+                    }
+                    
+                    OrderResponseDto.ProductInfo productInfo = new OrderResponseDto.ProductInfo(
+                            op.getProductId(),
+                            op.getProductName(),
+                            options);
+                    
+                    return new OrderResponseDto.OrderProduct(
+                            productInfo,
+                            op.getQuantity(),
+                            op.getOrderPrice(),
+                            op.getDiscountType() != null ? op.getDiscountType().toString() : null,
+                            op.getDiscountValue());
+                })
                 .collect(Collectors.toList());
+
+        // 배송 정보 조회
+        Delivery delivery = orderProducts.stream()
+                .findFirst()
+                .map(OrderProduct::getDeliveryId)
+                .orElse(null);
+        
+        OrderResponseDto.DeliveryInfo deliveryInfo = null;
+        int shippingFee = 0;
+        if (delivery != null) {
+            String address = String.format("%s %s (%s)", 
+                    delivery.getAddress1(),
+                    delivery.getAddress2() != null ? delivery.getAddress2() : "",
+                    delivery.getPostalCode()).trim();
+            deliveryInfo = new OrderResponseDto.DeliveryInfo(
+                    address,
+                    delivery.getRecipient(),
+                    delivery.getPhoneNumber());
+            shippingFee = delivery.getShippingFee() != null ? delivery.getShippingFee() : 0;
+        }
+
+        // OrderBenefit 조회
+        OrderResponseDto.OrderBenefit benefitInfo = orderBenefitRepository.findById(order.getOrderId())
+                .map(orderBenefit -> new OrderResponseDto.OrderBenefit(
+                        orderBenefit.getPointDiscount(),
+                        orderBenefit.getCouponDiscount()))
+                .orElse(new OrderResponseDto.OrderBenefit(0, 0));
+
+        // 총 상품금액
+        int productTotalAmount = products.stream()
+                .mapToInt(p -> {
+                    return p.getPrice() * p.getQuantity();
+                })
+                .sum();
+
+        int paymentPrice = order.getTotalPrice() != null ? order.getTotalPrice() : 0;
 
         return new OrderResponseDto.OrderDetail(
                 order.getOrderId(),
                 order.getOrderTitle(),
                 order.getOrderDate(),
-                order.getTotalPrice(),
-                order.getOrderStatus(),
-                productInfos);
+                productTotalAmount,
+                shippingFee,
+                benefitInfo,
+                paymentPrice,
+                products,
+                toOrderStatusLabel(order.getOrderStatus()),
+                deliveryInfo);
     }
 
     @Override
@@ -303,23 +384,90 @@ public class OrderServiceImpl implements OrderService {
         // 주문 상품 목록 조회
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
 
-        // DTO 변환
-        List<OrderResponseDto.OrderProductInfo> productInfos = orderProducts.stream()
-                .map(op -> new OrderResponseDto.OrderProductInfo(
-                        op.getOrderProductId(),
-                        op.getProductName(),
-                        op.getProductOptionName(),
-                        op.getQuantity(),
-                        op.getOrderPrice(),
-                        op.getOrderProductStatus() != null ? op.getOrderProductStatus().getLabel() : "상태 없음"))
+        // 상품 정보 DTO 변환
+        List<OrderResponseDto.OrderProduct> products = orderProducts.stream()
+                .map(op -> {
+                    // 옵션명을 파싱 (예: "화이트 / M" -> ["화이트", "M"])
+                    List<OrderResponseDto.ProductOption> options = new java.util.ArrayList<>();
+                    if (op.getProductOptionName() != null) {
+                        String[] optionParts = op.getProductOptionName().split(" / ");
+                        for (String optionPart : optionParts) {
+                            options.add(new OrderResponseDto.ProductOption(optionPart.trim()));
+                        }
+                    }
+                    
+                    OrderResponseDto.ProductInfo productInfo = new OrderResponseDto.ProductInfo(
+                            op.getProductId(),
+                            op.getProductName(),
+                            options);
+                    
+                    return new OrderResponseDto.OrderProduct(
+                            productInfo,
+                            op.getQuantity(),
+                            op.getOrderPrice(),
+                            op.getDiscountType() != null ? op.getDiscountType().toString() : null,
+                            op.getDiscountValue());
+                })
                 .collect(Collectors.toList());
+
+        // 배송 정보 조회
+        Delivery delivery = orderProducts.stream()
+                .findFirst()
+                .map(OrderProduct::getDeliveryId)
+                .orElse(null);
+        
+        OrderResponseDto.DeliveryInfo deliveryInfo = null;
+        int shippingFee = 0;
+        if (delivery != null) {
+            String address = String.format("%s %s (%s)", 
+                    delivery.getAddress1(),
+                    delivery.getAddress2() != null ? delivery.getAddress2() : "",
+                    delivery.getPostalCode()).trim();
+            deliveryInfo = new OrderResponseDto.DeliveryInfo(
+                    address,
+                    delivery.getRecipient(),
+                    delivery.getPhoneNumber());
+            shippingFee = delivery.getShippingFee() != null ? delivery.getShippingFee() : 0;
+        }
+
+        // OrderBenefit 조회
+        OrderResponseDto.OrderBenefit benefitInfo = orderBenefitRepository.findById(order.getOrderId())
+                .map(orderBenefit -> new OrderResponseDto.OrderBenefit(
+                        orderBenefit.getPointDiscount(),
+                        orderBenefit.getCouponDiscount()))
+                .orElse(new OrderResponseDto.OrderBenefit(0, 0));
+
+        // 총 상품금액
+        int productTotalAmount = products.stream()
+                .mapToInt(p -> {
+                    return p.getPrice() * p.getQuantity();
+                })
+                .sum();
+
+        int paymentPrice = order.getTotalPrice() != null ? order.getTotalPrice() : 0;
 
         return new OrderResponseDto.OrderDetail(
                 order.getOrderId(),
                 order.getOrderTitle(),
                 order.getOrderDate(),
-                order.getTotalPrice(),
-                order.getOrderStatus(),
-                productInfos);
+                productTotalAmount,
+                shippingFee,
+                benefitInfo,
+                paymentPrice,
+                products,
+                toOrderStatusLabel(order.getOrderStatus()),
+                deliveryInfo);
+    }
+
+    private String toOrderStatusLabel(OrderStatus status) {
+        if (status == null) {
+            return "상태 없음";
+        }
+        return switch (status) {
+            case DEPENDING -> "결제대기";
+            case PROGRESSING -> "결제진행";
+            case COMPLETE -> "결제완료";
+            case CANCEL -> "취소";
+        };
     }
 }

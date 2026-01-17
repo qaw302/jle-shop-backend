@@ -178,17 +178,17 @@ X-MEMBER-ID: test@test.com
   }
 }
 
-### 3단계: 결제 승인 (실제로는 토스 위젯에서 받은 데이터 사용)
-# 주의: 이 요청은 유효한 paymentKey가 없으면 실패합니다
-# 실제 paymentKey는 토스 결제 위젯을 통해서만 얻을 수 있습니다
-POST http://localhost:8080/v1/payments/confirm
-Content-Type: application/json
-
-{
-  "paymentKey": "test_payment_key_12345",
-  "orderId": "ORD20260115222351538",
-  "amount": 36666
-}
+#### 3단계: 결제 승인 (실제로는 토스 위젯에서 받은 데이터 사용)
+## 주의: 이 요청은 유효한 paymentKey가 없으면 실패합니다
+## 실제 paymentKey는 토스 결제 위젯을 통해서만 얻을 수 있습니다
+#POST http://localhost:8080/v1/payments/confirm
+#Content-Type: application/json
+#
+#{
+#  "paymentKey": "test_payment_key_12345",
+#  "orderId": "ORD20260115222351538",
+#  "amount": 36666
+#}
 
 ### 4단계: 주문 상세 조회 (결제 후 확인)
 GET http://localhost:8080/v1/orders/1

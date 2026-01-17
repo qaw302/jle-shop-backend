@@ -42,16 +42,21 @@ public class OrderSearchResponseDto {
         @Schema(description = "상품 개수", example = "2")
         private int productCount;
         @Setter
+        @Schema(description = "결제금액", example = "50000")
+        private Integer paymentAmount;
+        @Setter
         @Schema(description = "주문 상품 목록")
         private List<OrderProductDto> products;
         
+        
 
         @QueryProjection
-        public MemberOrder(long orderId, LocalDateTime orderDate, String productName, int productCount) {
+        public MemberOrder(long orderId, LocalDateTime orderDate, String productName, int productCount, Integer paymentAmount) {
             this.orderId = orderId;
             this.orderDate = orderDate;
             this.mainProductName = productName;
             this.productCount = productCount;
+            this.paymentAmount = paymentAmount;
         }
     }
 

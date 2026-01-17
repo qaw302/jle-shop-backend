@@ -3,9 +3,11 @@ package com.smplatform.product_service.domain.member.entity;
 import com.smplatform.product_service.domain.order.entity.Order;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Delivery {
@@ -17,12 +19,12 @@ public class Delivery {
 
     private String deliveryCompany;
 
-    private Integer deliveryFee;
+    private Integer shippingFee;
 
     private String postalCode;
 
     private String address1;
     private String address2;
-    private String receiverName;
+    private String recipient;
     private String phoneNumber;
 }

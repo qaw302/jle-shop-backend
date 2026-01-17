@@ -40,7 +40,8 @@ public class CustomOrderSearchRepositoryImpl implements CustomOrderSearchReposit
                         order.orderId,
                         order.orderDate,
                         order.orderTitle,
-                        orderProduct.orderProductId.count().intValue())
+                        orderProduct.orderProductId.count().intValue(),
+                        order.totalPrice)
                 )
                 .from(order)
                 .join(orderProduct).on(order.eq(orderProduct.order))

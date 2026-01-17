@@ -24,7 +24,7 @@ public class OrderController {
     private final OrderSearchService orderSearchService;
 
     @PostMapping
-    @Operation(summary = "주문 결제시 호출하는 API", description = "주문 완료시 해당 API를 호출, cartItemId는 Nullable")
+    @Operation(summary = "주문 요청", description = "주문시 해당 API를 호출")
     public ResponseEntity<OrderResponseDto.OrderSaveSuccess> saveOrder(@RequestHeader(name = "X-MEMBER-ID") String id,
             @RequestBody OrderRequestDto.OrderSave requestDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(orderService.saveOrder(id, requestDto));
