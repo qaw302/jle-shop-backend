@@ -190,37 +190,6 @@ X-MEMBER-ID: test@test.com
 #  "amount": 36666
 #}
 
-### 4단계: 주문 상세 조회 (결제 후 확인)
-GET http://localhost:8080/v1/orders/1
-X-MEMBER-ID: test@test.com
-
-### 주문내역 리스트 조회
-POST http://localhost:8080/v1/orders/search
-X-MEMBER-ID: test@test.com
-Content-Type: application/json
-
-{
-  "conditions": {
-    "type": "ALL",
-    "status": "PAYMENT_PENDING",
-    "startDate": "2025-01-15",
-    "endDate": "2026-01-19"
-  },
-  "pageable": {
-    "page": 0,
-    "size": 100,
-    "sort": {
-      "direction": "ASC",
-      "properties": [
-        "orderDate"
-      ]
-    }
-  }
-}
-### 5단계: 주문 취소 테스트
-DELETE http://localhost:8080/v1/orders/1
-X-MEMBER-ID: test@test.com
-
 ### ===============================================
 ### 실제 토스 API 테스트 (직접 토스 API 호출)
 ### ===============================================
@@ -235,29 +204,4 @@ Authorization: Basic dGVzdF9za19aMWFPd1g3SzhtWW9BTzVhZDJxOTh5UXh6dk5QOg==
   "paymentKey": "test_payment_key",
   "orderId": "test_order_123",
   "amount": 148586
-}
-
-### 관리자 주문내역조회
-POST http://localhost:8080/v1/admin/orders/search
-Content-Type: application/json
-X-MEMBER-ID: jle
-ROLE: ADMIN
-
-{
-  "conditions": {
-    "type": "ALL",
-    "startDate": "2025-01-15",
-    "endDate": "2026-01-19",
-    "memberId": "test@test.com"
-  },
-  "pageable": {
-    "page": 0,
-    "size": 100,
-    "sort": {
-      "direction": "ASC",
-      "properties": [
-        "orderDate"
-      ]
-    }
-  }
 }

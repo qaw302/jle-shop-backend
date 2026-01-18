@@ -198,6 +198,21 @@ X-MEMBER-ID: test@test.com
 DELETE http://localhost:8080/v1/orders/1
 X-MEMBER-ID: test@test.com
 
+### [11] 관리자 주문 상태 변경
+POST http://localhost:8080/v1/admin/orders/status
+Content-Type: application/json
+ROLE: ADMIN
+
+{
+  "orderId": 1,
+  "orderStatus": "SHIPPING"
+}
+
+### [12] 관리자 주문 상세 조회
+GET http://localhost:8080/v1/admin/orders/1
+Content-Type: application/json
+ROLE: ADMIN
+
 ### ==========================================
 ### QA 테스트 체크리스트
 ### ==========================================
@@ -231,4 +246,10 @@ X-MEMBER-ID: test@test.com
 ###
 ### ✓ Test Case 10: 주문 취소
 ### Expected: 204 No Content 또는 200 with "주문이 취소되었습니다." 메시지
+###
+### ✓ Test Case 11: 관리자 주문 상태 변경
+### Expected: 200 OK, 주문 상태가 SHIPPING(배송중)으로 변경됨
+###
+### ✓ Test Case 12: 관리자 주문 상세 조회
+### Expected: 200 OK, 주문 상세 정보 반환 (OrderDetail DTO)
 ###

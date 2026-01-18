@@ -12,6 +12,7 @@ import com.smplatform.product_service.domain.member.entity.Delivery;
 import com.smplatform.product_service.domain.member.entity.Member;
 import com.smplatform.product_service.domain.member.repository.DeliveryRepository;
 import com.smplatform.product_service.domain.member.repository.MemberRepository;
+import com.smplatform.product_service.domain.order.dto.AdminOrderRequestDto;
 import com.smplatform.product_service.domain.order.dto.OrderRequestDto;
 import com.smplatform.product_service.domain.order.dto.OrderResponseDto;
 import com.smplatform.product_service.domain.order.entity.Order;
@@ -262,6 +263,20 @@ public class OrderServiceImpl implements OrderService {
             throw new UnauthorizedException("본인의 주문만 조회할 수 있습니다.");
         }
 
+        return createOrderDetailResponse(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponseDto.OrderDetail getAdminOrderDetail(Long orderId) {
+        // 주문 조회
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("주문을 찾을 수 없습니다: " + orderId));
+
+        return createOrderDetailResponse(order);
+    }
+
+    private OrderResponseDto.OrderDetail createOrderDetailResponse(Order order) {
         // 주문 상품 목록 조회
         List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
 
@@ -276,12 +291,12 @@ public class OrderServiceImpl implements OrderService {
                             options.add(new OrderResponseDto.ProductOption(optionPart.trim()));
                         }
                     }
-                    
+
                     OrderResponseDto.ProductInfo productInfo = new OrderResponseDto.ProductInfo(
                             op.getProductId(),
                             op.getProductName(),
                             options);
-                    
+
                     return new OrderResponseDto.OrderProduct(
                             productInfo,
                             op.getQuantity(),
@@ -296,11 +311,11 @@ public class OrderServiceImpl implements OrderService {
                 .findFirst()
                 .map(OrderProduct::getDeliveryId)
                 .orElse(null);
-        
+
         OrderResponseDto.DeliveryInfo deliveryInfo = null;
         int shippingFee = 0;
         if (delivery != null) {
-            String address = String.format("%s %s (%s)", 
+            String address = String.format("%s %s (%s)",
                     delivery.getAddress1(),
                     delivery.getAddress2() != null ? delivery.getAddress2() : "",
                     delivery.getPostalCode()).trim();
@@ -314,12 +329,12 @@ public class OrderServiceImpl implements OrderService {
         // OrderBenefit 조회
         com.smplatform.product_service.domain.order.entity.OrderBenefit orderBenefit = orderBenefitRepository.findById(order.getOrderId())
                 .orElse(null);
-        
+
         int productOriginalTotalPrice = 0;
         int productTotalDiscountAmount = 0;
         int couponDiscountAmount = 0;
         int pointUsedAmount = 0;
-        
+
         if (orderBenefit != null) {
             productOriginalTotalPrice = orderBenefit.getProductOriginalTotalPrice() != null ? orderBenefit.getProductOriginalTotalPrice() : 0;
             productTotalDiscountAmount = orderBenefit.getProductTotalDiscountAmount() != null ? orderBenefit.getProductTotalDiscountAmount() : 0;
@@ -403,86 +418,7 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("본인의 주문만 조회할 수 있습니다.");
         }
 
-        // 주문 상품 목록 조회
-        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
-
-        // 상품 정보 DTO 변환
-        List<OrderResponseDto.OrderProduct> products = orderProducts.stream()
-                .map(op -> {
-                    // 옵션명을 파싱 (예: "화이트 / M" -> ["화이트", "M"])
-                    List<OrderResponseDto.ProductOption> options = new java.util.ArrayList<>();
-                    if (op.getProductOptionName() != null) {
-                        String[] optionParts = op.getProductOptionName().split(" / ");
-                        for (String optionPart : optionParts) {
-                            options.add(new OrderResponseDto.ProductOption(optionPart.trim()));
-                        }
-                    }
-                    
-                    OrderResponseDto.ProductInfo productInfo = new OrderResponseDto.ProductInfo(
-                            op.getProductId(),
-                            op.getProductName(),
-                            options);
-                    
-                    return new OrderResponseDto.OrderProduct(
-                            productInfo,
-                            op.getQuantity(),
-                            op.getOrderPrice(),
-                            op.getDiscountType() != null ? op.getDiscountType().toString() : null,
-                            op.getDiscountValue());
-                })
-                .collect(Collectors.toList());
-
-        // 배송 정보 조회
-        Delivery delivery = orderProducts.stream()
-                .findFirst()
-                .map(OrderProduct::getDeliveryId)
-                .orElse(null);
-        
-        OrderResponseDto.DeliveryInfo deliveryInfo = null;
-        int shippingFee = 0;
-        if (delivery != null) {
-            String address = String.format("%s %s (%s)", 
-                    delivery.getAddress1(),
-                    delivery.getAddress2() != null ? delivery.getAddress2() : "",
-                    delivery.getPostalCode()).trim();
-            deliveryInfo = new OrderResponseDto.DeliveryInfo(
-                    address,
-                    delivery.getRecipient(),
-                    delivery.getPhoneNumber());
-            shippingFee = delivery.getShippingFee() != null ? delivery.getShippingFee() : 0;
-        }
-
-        // OrderBenefit 조회
-        com.smplatform.product_service.domain.order.entity.OrderBenefit orderBenefit = orderBenefitRepository.findById(order.getOrderId())
-                .orElse(null);
-        
-        int productOriginalTotalPrice = 0;
-        int productTotalDiscountAmount = 0;
-        int couponDiscountAmount = 0;
-        int pointUsedAmount = 0;
-        
-        if (orderBenefit != null) {
-            productOriginalTotalPrice = orderBenefit.getProductOriginalTotalPrice() != null ? orderBenefit.getProductOriginalTotalPrice() : 0;
-            productTotalDiscountAmount = orderBenefit.getProductTotalDiscountAmount() != null ? orderBenefit.getProductTotalDiscountAmount() : 0;
-            couponDiscountAmount = orderBenefit.getCouponDiscount() != null ? orderBenefit.getCouponDiscount() : 0;
-            pointUsedAmount = orderBenefit.getPointDiscount() != null ? orderBenefit.getPointDiscount() : 0;
-        }
-
-        int paymentPrice = order.getTotalPrice() != null ? order.getTotalPrice() : 0;
-
-        return new OrderResponseDto.OrderDetail(
-                order.getOrderId(),
-                order.getOrderTitle(),
-                order.getOrderDate(),
-                productOriginalTotalPrice,
-                productTotalDiscountAmount,
-                couponDiscountAmount,
-                pointUsedAmount,
-                shippingFee,
-                paymentPrice,
-                products,
-                toOrderStatusLabel(order.getOrderStatus()),
-                deliveryInfo);
+        return createOrderDetailResponse(order);
     }
 
     private String toOrderStatusLabel(OrderStatus status) {
@@ -496,6 +432,58 @@ public class OrderServiceImpl implements OrderService {
             case DELIVERED -> "배송 완료";
             case PAYMENT_FAILED -> "결제 실패";
             case ORDER_CANCELLED -> "주문 취소";
+        };
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderStatus(AdminOrderRequestDto.UpdateStatus request) {
+        Order order = orderRepository.findById(request.getOrderId())
+                .orElseThrow(() -> new OrderNotFoundException("주문을 찾을 수 없습니다: " + request.getOrderId()));
+
+        OrderStatus newStatus;
+        try {
+            // 요청된 문자열을 OrderStatus Enum으로 변환합니다.
+            newStatus = OrderStatus.valueOf(request.getOrderStatus().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException("유효하지 않은 주문 상태입니다: " + request.getOrderStatus());
+        }
+
+        // Order 엔티티의 상태를 업데이트합니다.
+        order.updateStatus(newStatus);
+
+        // Order의 상태 변경에 따라 OrderProduct들의 상태도 동기화.
+        updateOrderProductsStatus(order, newStatus);
+    }
+
+    /**
+     * 주문의 상태 변경에 따라 하위 주문 상품들의 상태를 업데이트합니다.
+     * @param order 상태가 변경된 주문 엔티티
+     * @param newOrderStatus 새로운 주문 상태
+     */
+    private void updateOrderProductsStatus(Order order, OrderStatus newOrderStatus) {
+        List<OrderProduct> orderProducts = orderProductRepository.findAllByOrder(order);
+        OrderProductStatus newProductStatus = mapOrderStatusToProductStatus(newOrderStatus);
+
+        if (newProductStatus != null) {
+            for (OrderProduct product : orderProducts) {
+                // 이미 취소/반품/교환 처리된 상품의 상태는 변경하지 않습니다.
+                if (product.getOrderProductStatus().getType() != OrderProductStatus.StatusType.CANCEL_RETURN_EXCHANGE) {
+                    product.updateStatus(newProductStatus);
+                }
+            }
+        }
+    }
+
+    private OrderProductStatus mapOrderStatusToProductStatus(OrderStatus orderStatus) {
+        return switch (orderStatus) {
+            case PAYMENT_COMPLETED -> OrderProductStatus.PAYMENT_COMPLETED;
+            // case PREPARING_FOR_DELIVERY -> OrderProductStatus.PREPARING_FOR_DELIVERY;
+            case SHIPPING -> OrderProductStatus.SHIPPING;
+            case DELIVERED -> OrderProductStatus.DELIVERED;
+            case PAYMENT_FAILED -> OrderProductStatus.PAYMENT_FAILED;
+            case ORDER_CANCELLED -> OrderProductStatus.CANCEL_COMPLETED;
+            default -> null;
         };
     }
 }

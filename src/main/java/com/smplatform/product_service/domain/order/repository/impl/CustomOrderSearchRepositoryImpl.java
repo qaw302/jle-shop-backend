@@ -165,11 +165,11 @@ public class CustomOrderSearchRepositoryImpl implements CustomOrderSearchReposit
             return null;
         }
         if (AdminOrderSearchRequestDto.OrderSearchType.NORMAL.equals(type)) {
-            return orderProduct.orderProductStatus.in(OrderProductStatus.PAYMENT_PENDING, OrderProductStatus.PAYMENT_COMPLETE, 
-                    OrderProductStatus.PREPARING, OrderProductStatus.IN_TRANSIT, OrderProductStatus.DELEVERED);
+            return orderProduct.orderProductStatus.in(OrderProductStatus.PAYMENT_PENDING, OrderProductStatus.PAYMENT_COMPLETED, 
+                    OrderProductStatus.PREPARING, OrderProductStatus.SHIPPING, OrderProductStatus.DELIVERED);
         }
         if (AdminOrderSearchRequestDto.OrderSearchType.CANCEL_RETURN_EXCHANGE.equals(type)) {
-            return orderProduct.orderProductStatus.in(OrderProductStatus.CANCEL_REQUEST, OrderProductStatus.CANCEL_COMPLETED,
+            return orderProduct.orderProductStatus.in(OrderProductStatus.ORDER_CANCELLED, OrderProductStatus.CANCEL_COMPLETED,
                     OrderProductStatus.RETURN_REQUEST, OrderProductStatus.RETURN_COMPLETED,
                     OrderProductStatus.EXCHANGE_REQUEST, OrderProductStatus.EXCHANGE_COMPLETED,
                     OrderProductStatus.PICKUP_IN_PROGRESS, OrderProductStatus.PICKED_UP);
@@ -207,4 +207,3 @@ public class CustomOrderSearchRepositoryImpl implements CustomOrderSearchReposit
         }
     }
 }
-

@@ -50,6 +50,6 @@ public class OrderProduct {
     }
 
     public void completePayment() {
-        this.orderProductStatus = OrderProductStatus.PAYMENT_COMPLETE;
+        this.orderProductStatus = OrderProductStatus.PAYMENT_COMPLETED;
     }
 }
