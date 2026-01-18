@@ -16,6 +16,12 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CustomP
 
     @EntityGraph(attributePaths = {"discount"})
     Optional<Product> findByProductId(Long productId);
+
+    @EntityGraph(attributePaths = {"discount"})
+    Optional<Product> findByProductIdAndIsDeletedFalse(Long productId);
+
+    @EntityGraph(attributePaths = {"discount"})
+    Page<Product> findAllByIsDeletedFalse(Pageable pageable);
     
     List<Product> findAllByDiscount(Discount discount);
 }

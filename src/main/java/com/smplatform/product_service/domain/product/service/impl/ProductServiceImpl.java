@@ -50,7 +50,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductResponseDto.ProductGet getProduct(long productId) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByProductIdAndIsDeletedFalse(productId)
                 .orElseThrow(() -> new ProductNotFoundException(String.format("product { %d } not found", productId)));
 
         List<ProductOption> productOptions = productOptionRepository.findAllByProductProductId(productId);
@@ -166,6 +166,18 @@ public class ProductServiceImpl implements ProductService {
         return String.valueOf(productRepository.save(product).getProductId());
     }
 
+    @Override
+    @Transactional
+    public String deleteProduct(long productId) {
+        Product product = productRepository.findByProductIdAndIsDeletedFalse(productId)
+                .orElseThrow(() -> new ProductNotFoundException(String.format("product { %d } not found", productId)));
+
+        product.setDeleted(true);
+        product.setSelling(false);
+
+        return String.valueOf(productRepository.save(product).getProductId());
+    }
+
     private void updateProductImage(Product product, List<String> paths) {
         List<ProductImageResponseDto.ProductImageInfo> originalProductImageInfoList =
                 productImageService.getProductProductImageList(product.getProductId());
@@ -237,7 +249,9 @@ public class ProductServiceImpl implements ProductService {
 
         if (Objects.isNull(condition) || condition.isConditionEmpty()) {
             if (categoryId == 0) {
-                return productRepository.findAll(pageable).map(ProductResponseDto.ProductGetForUsers::of).toList();
+                return productRepository.findAllByIsDeletedFalse(pageable)
+                        .map(ProductResponseDto.ProductGetForUsers::of)
+                        .toList();
             } else {
                 return productCategoryMappingRepository.findAllByCategoryId(categoryId).stream()
                         .map(ProductResponseDto.ProductGetForUsers::of)
