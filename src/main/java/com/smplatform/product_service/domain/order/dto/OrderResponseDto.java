@@ -1,7 +1,6 @@
 package com.smplatform.product_service.domain.order.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.smplatform.product_service.domain.discount.entity.Discount;
 import com.smplatform.product_service.domain.order.entity.Order;
 import io.swagger.v3.oas.annotations.media.Schema;

@@ -1,0 +1,234 @@
+### ==========================================
+### Order API Test
+### ==========================================
+
+### [1] 사용자 주문 검색 - 페이지네이션
+POST http://localhost:8080/v1/orders/search
+Content-Type: application/json
+X-MEMBER-ID: test@test.com
+
+{
+  "conditions": {
+    "type": "ALL",
+    "status": null,
+    "startDate": "2024-01-01",
+    "endDate": "2026-12-31"
+  },
+  "pageable": {
+    "page": 0,
+    "size": 10,
+    "sort": {
+      "direction": "DESC",
+      "properties": ["orderDate"]
+    }
+  }
+}
+
+### [2] 사용자 주문 검색 - 다른 페이지
+POST http://localhost:8080/v1/orders/search
+Content-Type: application/json
+X-MEMBER-ID: test@test.com
+
+{
+  "conditions": {
+    "type": "ALL",
+    "status": null,
+    "startDate": "2024-01-01",
+    "endDate": "2026-12-31"
+  },
+  "pageable": {
+    "page": 1,
+    "size": 5,
+    "sort": {
+      "direction": "DESC",
+      "properties": ["orderDate"]
+    }
+  }
+}
+
+### [3] 관리자 주문 검색 - 페이지네이션 (신규)
+POST http://localhost:8080/v1/admin/orders/search
+Content-Type: application/json
+ROLE: ADMIN
+
+{
+  "conditions": {
+    "orderId": null,
+    "orderMemberId": null,
+    "orderMemberName": null,
+    "orderProductName": null,
+    "startDate": "2024-01-01",
+    "endDate": "2026-12-31",
+    "type": "ALL",
+    "status": "전체"
+  },
+  "pageable": {
+    "page": 0,
+    "size": 10,
+    "sortBy": "orderDate",
+    "direction": "DESC"
+  }
+}
+
+### [4] 관리자 주문 검색 - 필터링 (회원명)
+POST http://localhost:8080/v1/admin/orders/search
+Content-Type: application/json
+ROLE: ADMIN
+
+{
+  "conditions": {
+    "orderId": null,
+    "orderMemberId": null,
+    "orderMemberName": "제이르",
+    "orderProductName": null,
+    "startDate": "2024-01-01",
+    "endDate": "2026-12-31",
+    "type": "ALL",
+    "status": "전체"
+  },
+  "pageable": {
+    "page": 0,
+    "size": 10,
+    "sortBy": "orderDate",
+    "direction": "DESC"
+  }
+}
+
+### [5] 관리자 주문 검색 - 필터링 (상품명)
+POST http://localhost:8080/v1/admin/orders/search
+Content-Type: application/json
+ROLE: ADMIN
+
+{
+  "conditions": {
+    "orderId": null,
+    "orderMemberId": null,
+    "orderMemberName": null,
+    "orderProductName": "니트1",
+    "startDate": "2024-01-01",
+    "endDate": "2026-12-31",
+    "type": "ALL",
+    "status": "전체"
+  },
+  "pageable": {
+    "page": 0,
+    "size": 10,
+    "sortBy": "orderDate",
+    "direction": "DESC"
+  }
+}
+
+### [6] 관리자 주문 검색 - 필터링 (주문 ID)
+POST http://localhost:8080/v1/admin/orders/search
+Content-Type: application/json
+ROLE: ADMIN
+
+{
+  "conditions": {
+    "orderId": 1,
+    "orderMemberId": null,
+    "orderMemberName": null,
+    "orderProductName": null,
+    "startDate": "2024-01-01",
+    "endDate": "2026-12-31",
+    "type": "ALL",
+    "status": "전체"
+  },
+  "pageable": {
+    "page": 0,
+    "size": 10,
+    "sortBy": "orderDate",
+    "direction": "DESC"
+  }
+}
+
+### [7] 관리자 주문 검색 - 필터링 (기간)
+POST http://localhost:8080/v1/admin/orders/search
+Content-Type: application/json
+ROLE: ADMIN
+
+{
+  "conditions": {
+    "orderId": null,
+    "orderMemberId": null,
+    "orderMemberName": null,
+    "orderProductName": null,
+    "startDate": "2025-01-01",
+    "endDate": "2025-01-31",
+    "type": "ALL",
+    "status": "전체"
+  },
+  "pageable": {
+    "page": 0,
+    "size": 10,
+    "sortBy": "orderDate",
+    "direction": "DESC"
+  }
+}
+
+### [8] 관리자 주문 검색 - 페이지 크기 변경
+POST http://localhost:8080/v1/admin/orders/search
+Content-Type: application/json
+ROLE: ADMIN
+
+{
+  "conditions": {
+    "orderId": null,
+    "orderMemberId": null,
+    "orderMemberName": null,
+    "orderProductName": null,
+    "startDate": "2024-01-01",
+    "endDate": "2026-12-31",
+    "type": "ALL",
+    "status": "전체"
+  },
+  "pageable": {
+    "page": 0,
+    "size": 5,
+    "sortBy": "orderDate",
+    "direction": "DESC"
+  }
+}
+
+### [9] 주문 상세 조회
+GET http://localhost:8080/v1/orders/1
+X-MEMBER-ID: test@test.com
+
+### [10] 주문 취소
+DELETE http://localhost:8080/v1/orders/1
+X-MEMBER-ID: test@test.com
+
+### ==========================================
+### QA 테스트 체크리스트
+### ==========================================
+### 
+### ✓ Test Case 1: 사용자 주문 검색 - 페이지네이션 정상 작동
+### Expected: content[], page, size, totalElements, totalPages 포함
+###
+### ✓ Test Case 2: 사용자 주문 검색 - 페이지 변경
+### Expected: page가 1로 변경되고 데이터 5개씩 조회
+###
+### ✓ Test Case 3: 관리자 주문 검색 - 기본 조회
+### Expected: content[], page, size, totalElements, totalPages 포함 (페이지네이션)
+###
+### ✓ Test Case 4: 관리자 주문 검색 - 회원명 필터링
+### Expected: orderMemberName = "제이르"인 주문만 조회
+###
+### ✓ Test Case 5: 관리자 주문 검색 - 상품명 필터링
+### Expected: orderProductName = "Basic Tee"인 주문만 조회
+###
+### ✓ Test Case 6: 관리자 주문 검색 - 주문ID 필터링
+### Expected: orderId = 1인 주문만 조회
+###
+### ✓ Test Case 7: 관리자 주문 검색 - 기간 필터링
+### Expected: 2025-01-01 ~ 2025-01-31 범위의 주문만 조회
+###
+### ✓ Test Case 8: 관리자 주문 검색 - 페이지 크기 변경
+### Expected: size가 5로 변경되고 size: 5 반환
+###
+### ✓ Test Case 9: 주문 상세 조회
+### Expected: 주문 상세 정보 반환 (OrderDetail DTO)
+###
+### ✓ Test Case 10: 주문 취소
+### Expected: 204 No Content 또는 200 with "주문이 취소되었습니다." 메시지
+###

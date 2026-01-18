@@ -181,7 +181,7 @@ public class OrderServiceImpl implements OrderService {
 
         // 할인 및 배송 엔티티 저장
         Order order = orderRepository.save(
-                new Order(null, null, member, null, finalPrice, OrderStatus.PROGRESSING, orderTitle));
+                new Order(null, null, member, null, finalPrice, OrderStatus.PAYMENT_PENDING, orderTitle));
         Delivery delivery = deliveryRepository.save(
                 new Delivery(
                         0L,
@@ -357,10 +357,10 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // 취소 가능한 상태인지 확인
-        if (order.getOrderStatus() == OrderStatus.COMPLETE) {
+        if (order.getOrderStatus() == OrderStatus.DELIVERED) {
             throw new IllegalArgumentException("이미 완료된 주문은 취소할 수 없습니다.");
         }
-        if (order.getOrderStatus() == OrderStatus.CANCEL) {
+        if (order.getOrderStatus() == OrderStatus.ORDER_CANCELLED) {
             throw new IllegalArgumentException("이미 취소된 주문입니다.");
         }
 
@@ -490,10 +490,12 @@ public class OrderServiceImpl implements OrderService {
             return "상태 없음";
         }
         return switch (status) {
-            case DEPENDING -> "결제대기";
-            case PROGRESSING -> "결제진행";
-            case COMPLETE -> "결제완료";
-            case CANCEL -> "취소";
+            case PAYMENT_PENDING -> "결제 대기";
+            case PAYMENT_COMPLETED -> "결제 완료";
+            case SHIPPING -> "배송 중";
+            case DELIVERED -> "배송 완료";
+            case PAYMENT_FAILED -> "결제 실패";
+            case ORDER_CANCELLED -> "주문 취소";
         };
     }
 }

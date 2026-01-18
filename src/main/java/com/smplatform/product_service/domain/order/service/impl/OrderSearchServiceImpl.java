@@ -1,5 +1,6 @@
 package com.smplatform.product_service.domain.order.service.impl;
 
+import com.smplatform.product_service.domain.order.dto.AdminOrderSearchRequestDto;
 import com.smplatform.product_service.domain.order.dto.OrderSearchRequestDto;
 import com.smplatform.product_service.domain.order.dto.OrderSearchResponseDto;
 import com.smplatform.product_service.domain.order.entity.OrderProduct;
@@ -54,4 +55,27 @@ public class OrderSearchServiceImpl implements OrderSearchService {
                 resultPage.getTotalPages()
         );
     }
+
+    @Override
+    public OrderSearchResponseDto.AdminOrdersGet getAdminOrders(AdminOrderSearchRequestDto.AdminOrdersSearch request) {
+        // PageableDto로 Pageable 객체 생성
+        AdminOrderSearchRequestDto.PageableDto pageableDto = request.getPageable();
+        Pageable pageable = PageRequest.of(
+                pageableDto.getPage(),
+                pageableDto.getSize(),
+                Sort.by(pageableDto.getDirection(), pageableDto.getSortBy())
+        );
+
+        // response의 "content" 생성
+        Page<OrderSearchResponseDto.AdminOrder> resultPage = orderRepository.findAllAdminOrderBy(request, pageable);
+
+        return new OrderSearchResponseDto.AdminOrdersGet(
+                resultPage.getContent(),
+                resultPage.getNumber(),
+                resultPage.getSize(),
+                resultPage.getTotalElements(),
+                resultPage.getTotalPages()
+        );
+    }
 }
+

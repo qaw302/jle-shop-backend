@@ -6,7 +6,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -63,10 +62,10 @@ public class Order {
     }
 
     public void completeOrder() {
-        this.orderStatus = OrderStatus.COMPLETE;
+        this.orderStatus = OrderStatus.DELIVERED;
     }
 
     public void cancelOrder() {
-        this.orderStatus = OrderStatus.CANCEL;
+        this.orderStatus = OrderStatus.ORDER_CANCELLED;
     }
 }

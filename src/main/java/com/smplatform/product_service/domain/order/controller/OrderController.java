@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import io.swagger.v3.oas.annotations.Parameter;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/v1/orders")
 @RequiredArgsConstructor
@@ -61,3 +63,4 @@ public class OrderController {
         return orderSearchService.getMemberOrders(memberId, request);
     }
 }
+
