@@ -3,6 +3,7 @@ package com.smplatform.product_service.domain.coupon.service.impl;
 import com.smplatform.product_service.domain.coupon.dto.CouponRequestDto;
 import com.smplatform.product_service.domain.coupon.dto.CouponResponseDto;
 import com.smplatform.product_service.domain.coupon.entity.Coupon;
+import com.smplatform.product_service.domain.coupon.entity.IssueType;
 import com.smplatform.product_service.domain.coupon.repository.CouponRepository;
 import com.smplatform.product_service.domain.coupon.service.CouponService;
 import com.smplatform.product_service.exception.BadRequestException;
@@ -29,7 +30,7 @@ public class CouponServiceImpl implements CouponService {
             throw new BadRequestException("쿠폰 생성 요청 정보가 누락되었습니다.");
         }
 
-        if (couponRequestDto.getCouponIssueCode() == null || couponRequestDto.getCouponIssueCode().isBlank()) {
+        if (couponRequestDto.getIssueType() == IssueType.CODE && (couponRequestDto.getCouponIssueCode() == null || couponRequestDto.getCouponIssueCode().isBlank())) {
             throw new BadRequestException("쿠폰 코드를 입력해주세요.");
         }
 

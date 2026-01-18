@@ -94,7 +94,7 @@ public class Coupon {
             case FIXED:
                 discount = discountAmount;
                 break;
-            case PERCENT:
+            case RATE:
                 discount = (int) (originalPrice * (discountAmount / 100.0));
                 break;
             default:

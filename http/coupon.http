@@ -6,7 +6,7 @@ ROLE: ADMIN
 
 {
   "couponName": "무신사랑해50%쿠폰",
-  "couponType": "PERCENT",
+  "couponType": "RATE",
   "amount": 50,
   "minOrderPrice": 50000 ,
   "maxDiscountPrice": 1000,
@@ -84,7 +84,7 @@ ROLE: ADMIN
 
 ### 쿠폰발급
 POST http://localhost:8080/v1/coupons/issue
-X-MEMBER-ID: test@test.com
+X-MEMBER-ID: jle
 Content-Type: application/json
 
 {
@@ -93,4 +93,4 @@ Content-Type: application/json
 
 ### 보유 쿠폰 조회
 GET http://localhost:8080/v1/members/me/coupons
-X-MEMBER-ID: test@test.com
+X-MEMBER-ID: jle
