@@ -170,11 +170,11 @@ X-MEMBER-ID: test@test.com
   },
   "orderDetail": {
     "originalTotal": 36666,
-    "discountedTotal": 25666,
-    "productDiscount": 0,
-    "additionalDiscount": 0,
-    "shippingFee": 0,
-    "finalAmount": 25666
+    "discountedTotal": 30666,
+    "productDiscount": 6000,
+    "additionalDiscount": 5000,
+    "shippingFee": 3000,
+    "finalAmount": 28666
   }
 }
 

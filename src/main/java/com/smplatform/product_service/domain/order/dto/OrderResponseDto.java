@@ -82,13 +82,17 @@ public class OrderResponseDto {
         @Schema(description = "주문 일시", example = "2024-01-02T10:30:00")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private LocalDateTime orderDate;
-        @Schema(description = "주문 금액(할인 미포함)", example = "20000")
-        private Integer orderPrice;
+        @Schema(description = "상품할인 전 원래 총가격", example = "30000")
+        private Integer originalTotalPrice;
+        @Schema(description = "상품총할인금액", example = "5000")
+        private Integer discountTotalAmount;
+        @Schema(description = "쿠폰할인금액", example = "2000")
+        private Integer couponDiscountAmount;
+        @Schema(description = "포인트사용금액", example = "1000")
+        private Integer pointUsedAmount;
         @Schema(description = "배송비", example = "3000")
         private Integer shippingFee;
-        @Schema(description = "주문 혜택 정보 (쿠폰/포인트)")
-        private OrderBenefit benefits;
-        @Schema(description = "결제 금액", example = "16000")
+        @Schema(description = "결제 금액", example = "25000")
         private Integer paymentPrice;
         @Schema(description = "주문 상품 목록")
         private List<OrderProduct> products;

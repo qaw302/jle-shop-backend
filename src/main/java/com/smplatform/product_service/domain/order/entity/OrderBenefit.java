@@ -29,4 +29,10 @@ public class OrderBenefit {
     private MemberCoupon coupon;
     @Column(name = "total_benefit")
     private Long totalBenefit;
+    
+    @Column(name = "product_original_total_price")
+    private Integer productOriginalTotalPrice;
+    
+    @Column(name = "product_total_discount_amount")
+    private Integer productTotalDiscountAmount;
 }

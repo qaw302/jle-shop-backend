@@ -187,7 +187,7 @@ public class OrderServiceImpl implements OrderService {
                         0L,
                         null,
                         null,
-                        null,
+                        requestDto.getOrderDetail().getShippingFee(),
                         requestDto.getAddressInfo().getPostalCode(),
                         requestDto.getAddressInfo().getAddress1(),
                         requestDto.getAddressInfo().getAddress2(),
@@ -213,8 +213,12 @@ public class OrderServiceImpl implements OrderService {
                             savedDtoMap.get(orderItem.getProductOptionId()).getName(),
                             savedDtoMap.get(orderItem.getProductOptionId()).getDiscountId(),
                             savedDtoMap.get(orderItem.getProductOptionId()).getDiscountType(),
-                            savedDtoMap.get(orderItem.getProductOptionId()).getDiscountValue()));
+                            savedDtoMap.get(orderItem.getProductOptionId()).getDiscountValue(),
+                            (savedDtoMap.get(orderItem.getProductOptionId()).getPrice() + savedDtoMap.get(orderItem.getProductOptionId()).getAdditionalPrice()) * orderItem.getQuantity()));
         });
+
+        // 상품 총할인금액 계산
+        int productTotalDiscountAmount = originalTotalPrice.get() - discountedTotalPrice.get();
 
         // OrderBenefit 저장 (쿠폰 또는 포인트 사용 시)
         if (couponDiscount > 0 || pointDiscount > 0) {
@@ -225,7 +229,21 @@ public class OrderServiceImpl implements OrderService {
                     pointDiscount,
                     couponDiscount,
                     usedMemberCoupon,
-                    totalBenefit);
+                    totalBenefit,
+                    originalTotalPrice.get(),
+                    productTotalDiscountAmount);
+            orderBenefitRepository.save(orderBenefit);
+        } else {
+            // 혜택이 없어도 원가 정보는 저장
+            OrderBenefit orderBenefit = new OrderBenefit(
+                    null,
+                    order,
+                    0,
+                    0,
+                    null,
+                    0L,
+                    originalTotalPrice.get(),
+                    productTotalDiscountAmount);
             orderBenefitRepository.save(orderBenefit);
         }
 
@@ -294,18 +312,20 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // OrderBenefit 조회
-        OrderResponseDto.OrderBenefit benefitInfo = orderBenefitRepository.findById(order.getOrderId())
-                .map(orderBenefit -> new OrderResponseDto.OrderBenefit(
-                        orderBenefit.getPointDiscount(),
-                        orderBenefit.getCouponDiscount()))
-                .orElse(new OrderResponseDto.OrderBenefit(0, 0));
-
-        // 총 상품금액
-        int productTotalAmount = products.stream()
-                .mapToInt(p -> {
-                    return p.getPrice() * p.getQuantity();
-                })
-                .sum();
+        com.smplatform.product_service.domain.order.entity.OrderBenefit orderBenefit = orderBenefitRepository.findById(order.getOrderId())
+                .orElse(null);
+        
+        int productOriginalTotalPrice = 0;
+        int productTotalDiscountAmount = 0;
+        int couponDiscountAmount = 0;
+        int pointUsedAmount = 0;
+        
+        if (orderBenefit != null) {
+            productOriginalTotalPrice = orderBenefit.getProductOriginalTotalPrice() != null ? orderBenefit.getProductOriginalTotalPrice() : 0;
+            productTotalDiscountAmount = orderBenefit.getProductTotalDiscountAmount() != null ? orderBenefit.getProductTotalDiscountAmount() : 0;
+            couponDiscountAmount = orderBenefit.getCouponDiscount() != null ? orderBenefit.getCouponDiscount() : 0;
+            pointUsedAmount = orderBenefit.getPointDiscount() != null ? orderBenefit.getPointDiscount() : 0;
+        }
 
         int paymentPrice = order.getTotalPrice() != null ? order.getTotalPrice() : 0;
 
@@ -313,9 +333,11 @@ public class OrderServiceImpl implements OrderService {
                 order.getOrderId(),
                 order.getOrderTitle(),
                 order.getOrderDate(),
-                productTotalAmount,
+                productOriginalTotalPrice,
+                productTotalDiscountAmount,
+                couponDiscountAmount,
+                pointUsedAmount,
                 shippingFee,
-                benefitInfo,
                 paymentPrice,
                 products,
                 toOrderStatusLabel(order.getOrderStatus()),
@@ -431,18 +453,20 @@ public class OrderServiceImpl implements OrderService {
         }
 
         // OrderBenefit 조회
-        OrderResponseDto.OrderBenefit benefitInfo = orderBenefitRepository.findById(order.getOrderId())
-                .map(orderBenefit -> new OrderResponseDto.OrderBenefit(
-                        orderBenefit.getPointDiscount(),
-                        orderBenefit.getCouponDiscount()))
-                .orElse(new OrderResponseDto.OrderBenefit(0, 0));
-
-        // 총 상품금액
-        int productTotalAmount = products.stream()
-                .mapToInt(p -> {
-                    return p.getPrice() * p.getQuantity();
-                })
-                .sum();
+        com.smplatform.product_service.domain.order.entity.OrderBenefit orderBenefit = orderBenefitRepository.findById(order.getOrderId())
+                .orElse(null);
+        
+        int productOriginalTotalPrice = 0;
+        int productTotalDiscountAmount = 0;
+        int couponDiscountAmount = 0;
+        int pointUsedAmount = 0;
+        
+        if (orderBenefit != null) {
+            productOriginalTotalPrice = orderBenefit.getProductOriginalTotalPrice() != null ? orderBenefit.getProductOriginalTotalPrice() : 0;
+            productTotalDiscountAmount = orderBenefit.getProductTotalDiscountAmount() != null ? orderBenefit.getProductTotalDiscountAmount() : 0;
+            couponDiscountAmount = orderBenefit.getCouponDiscount() != null ? orderBenefit.getCouponDiscount() : 0;
+            pointUsedAmount = orderBenefit.getPointDiscount() != null ? orderBenefit.getPointDiscount() : 0;
+        }
 
         int paymentPrice = order.getTotalPrice() != null ? order.getTotalPrice() : 0;
 
@@ -450,9 +474,11 @@ public class OrderServiceImpl implements OrderService {
                 order.getOrderId(),
                 order.getOrderTitle(),
                 order.getOrderDate(),
-                productTotalAmount,
+                productOriginalTotalPrice,
+                productTotalDiscountAmount,
+                couponDiscountAmount,
+                pointUsedAmount,
                 shippingFee,
-                benefitInfo,
                 paymentPrice,
                 products,
                 toOrderStatusLabel(order.getOrderStatus()),

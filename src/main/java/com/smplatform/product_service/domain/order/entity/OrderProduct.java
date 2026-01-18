@@ -42,6 +42,8 @@ public class OrderProduct {
     private Discount.Type discountType;
     @Column(name = "disocunt_value")
     private Integer discountValue;
+    @Column(name = "original_price")
+    private Integer originalPrice;
 
     public void updateStatus(OrderProductStatus newStatus) {
         this.orderProductStatus = newStatus;
