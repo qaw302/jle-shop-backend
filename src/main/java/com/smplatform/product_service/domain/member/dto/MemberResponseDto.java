@@ -1,6 +1,7 @@
 package com.smplatform.product_service.domain.member.dto;
 
 import com.smplatform.product_service.domain.member.entity.Member;
+import com.smplatform.product_service.domain.member.enums.MemberStatus;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ public class MemberResponseDto {
         private final String status;
         private final String level;
         private final String authority;
+        private final Boolean withdrawn;
         private final LocalDateTime createAt;
         private final LocalDateTime updateAt;
 
@@ -29,6 +31,7 @@ public class MemberResponseDto {
             this.status = member.getStatus().toString();
             this.level = member.getLevel().toString();
             this.authority = member.getAuthority().toString();
+            this.withdrawn = member.getStatus() == MemberStatus.WITHDRAWN;
             this.createAt = member.getCreateAt();
             this.updateAt = member.getUpdateAt();
         }

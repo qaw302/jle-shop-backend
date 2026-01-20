@@ -68,6 +68,7 @@ public class MemberRequestDto {
         private String name;
         private String email;
         private MemberLevel level;
+        private MemberStatus status;
         private DateSerach dateSearch; // 가입일, 생일
         private LocalDate startDate;
         private LocalDate endDate;

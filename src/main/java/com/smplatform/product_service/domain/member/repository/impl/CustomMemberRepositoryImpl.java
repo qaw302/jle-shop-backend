@@ -6,6 +6,7 @@ import com.smplatform.product_service.domain.member.dto.MemberRequestDto;
 import com.smplatform.product_service.domain.member.entity.Member;
 import com.smplatform.product_service.domain.member.enums.Gender;
 import com.smplatform.product_service.domain.member.enums.MemberLevel;
+import com.smplatform.product_service.domain.member.enums.MemberStatus;
 import com.smplatform.product_service.domain.member.enums.search.DateSerach;
 import com.smplatform.product_service.domain.member.repository.CustomMemberRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class CustomMemberRepositoryImpl implements CustomMemberRepository {
                         nameContains(searchRequestParamDto.getName()),
                         emailContains(searchRequestParamDto.getEmail()),
                         levelEq(searchRequestParamDto.getLevel()),
+                        statusEq(searchRequestParamDto.getStatus()),
                         dateSearchBetween(searchRequestParamDto.getDateSearch(), searchRequestParamDto.getStartDate(), searchRequestParamDto.getEndDate()),
                         ageBetween(searchRequestParamDto.getStartAge(), searchRequestParamDto.getEndAge()),
                         genderEq(searchRequestParamDto.getGender())
@@ -45,6 +47,10 @@ public class CustomMemberRepositoryImpl implements CustomMemberRepository {
 
     private BooleanExpression levelEq(MemberLevel level) {
         return level != null ? member.level.eq(MemberLevel.valueOf(level.name())) : null;
+    }
+
+    private BooleanExpression statusEq(MemberStatus status) {
+        return status != null ? member.status.eq(MemberStatus.valueOf(status.name())) : null;
     }
 
     private BooleanExpression dateSearchBetween(DateSerach dateSearch, LocalDate startDate, LocalDate endDate) {

@@ -1,5 +1,6 @@
 package com.smplatform.product_service.domain.member.controller;
 
+import com.smplatform.product_service.annotation.AdminOnly;
 import com.smplatform.product_service.domain.member.dto.*;
 import com.smplatform.product_service.domain.member.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,6 +71,16 @@ public class MemberController {
             @RequestBody MemberRequestDto.Withdraw withdrawDto
     ) {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(memberService.deleteMember(id, withdrawDto));
+    }
+
+    @AdminOnly
+    @PostMapping("/{id}/withdraw")
+    @Operation(summary = "member 탈퇴(관리자)", description = "관리자가 사용자 탈퇴 상태로 변경")
+    public ResponseEntity<Void> withdrawMemberByAdmin(
+            @PathVariable("id") String id,
+            @RequestBody MemberRequestDto.Withdraw withdrawDto
+    ) {
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(memberService.withdrawMemberByAdmin(id, withdrawDto));
     }
 
     @GetMapping("/credential/{id}")

@@ -29,6 +29,7 @@ public interface MemberService {
      * Delete
      */
     Void deleteMember(String id, MemberRequestDto.Withdraw withdrawDto);
+    Void withdrawMemberByAdmin(String memberId, MemberRequestDto.Withdraw withdrawDto);
 
     /**
      * Actions
