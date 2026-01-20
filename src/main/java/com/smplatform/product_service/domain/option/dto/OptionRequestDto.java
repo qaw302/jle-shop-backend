@@ -4,7 +4,6 @@ import com.smplatform.product_service.domain.option.entity.OptionType;
 import com.smplatform.product_service.domain.option.entity.OptionValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;

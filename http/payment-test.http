@@ -1,148 +1,93 @@
-### 1. 카테고리 생성 (상품은 반드시 카테고리가 있어야 등록 가능)
+### ===============================================
+### 🧪 토스 페이먼츠 백엔드 통합 테스트
+### ===============================================
+### ✨ 개선사항:
+### - confirmPayment에서 결제 승인 + 주문 처리가 하나의 트랜잭션으로 처리
+### - 멱등성 보장 (중복 결제 방지)
+### - 금액 검증 추가
+### - 재고 부족 예외 처리
+### ===============================================
+
+### ===============================================
+### STEP 1: 초기 데이터 생성
+### ===============================================
+
+### 1-1. 카테고리 생성
 POST http://localhost:8080/v1/categories
-content-type:application/json
-X-MEMBER-ID: asdf
+Content-Type: application/json
+X-MEMBER-ID: admin@test.com
 ROLE: ADMIN
 
 {
-  "categoryName": "test1",
+  "categoryName": "의류",
   "categoryLevel": 1
 }
 
-### 1-1. 하위 카테고리 생성
-POST http://localhost:8080/v1/categories
-content-type:application/json
-X-MEMBER-ID: asdf
-ROLE: ADMIN
+###
 
-{
-  "parentCategoryId": 1,
-  "categoryName": "child category1",
-  "categoryLevel": 2
-}
-
-### 1-2. 카테고리 전체 조회
-GET http://localhost:8080/v1/categories
-
-
-### 2. 제품 등록 ({옵션-상품옵션 테이블 자동등록}, {태그-기존태그 존재시 only 상품태그 저장, 기존태그 부재시 태그 테이블 & 상품 태그 테이블 저장}, {썸네일-자동 등록})
+### 1-2. 제품 등록
 POST http://localhost:8080/v1/products
 Content-Type: application/json
-X-MEMBER-ID: test
+X-MEMBER-ID: admin@test.com
 ROLE: ADMIN
 
 {
-  "name": "니트1",
-  "description": "description.",
+  "name": "겨울 울 니트",
+  "description": "따뜻한 겨울 울 니트입니다.",
   "categoryId": 1,
-  "price": 15000,
-  "summaryDescription": "summary description.",
-  "simpleDescription": "simple description.",
+  "price": 50000,
+  "summaryDescription": "따뜻한 겨울 니트",
+  "simpleDescription": "메리노 울 100%",
   "productOptions": [
     {
-      "productOptionName": "PON",
+      "productOptionName": "베이지/M",
       "productOptionDetails": [
         {
-          "productOptionType": "POT",
-          "productOptionDetailName": "OPDN"
+          "productOptionType": "색상",
+          "productOptionDetailName": "베이지"
+        },
+        {
+          "productOptionType": "사이즈",
+          "productOptionDetailName": "M"
         }
       ],
-      "stockQuantity": 10,
-      "additionalPrice": 3333
+      "stockQuantity": 100,
+      "additionalPrice": 0
     }
   ],
-  "thumbnail": "/thm/path",
+  "thumbnail": "/images/knitwear.jpg",
   "productImages": {
-    "paths": [
-      "/path/1",
-      "/path/2",
-      "/path/3"
-    ]
+    "paths": ["/images/knitwear-1.jpg"]
   },
   "tags": [
-    {
-      "tagName": "진짜 멋진거"
-    }
+    {"tagName": "겨울신상"}
   ]
 }
 
-### 1-3. 제품-카테고리 매핑 테이블 전체 조회
-GET http://localhost:8080/v1/product-category
-ROLE:ADMIN
+###
 
-### 3. 할인 저장
-POST http://localhost:8080/v1/discounts
-content-type: application/json
-X-MEMBER-ID: asdf
-ROLE: ADMIN
-
-{
-  "discountName": "test discount 1",
-  "discountType": "할인율",
-  "discountValue": 20,
-  "discountStartDate": "2025-07-01T00:00:00.000Z",
-  "discountEndDate": "2026-07-29T00:00:00.000Z",
-  "applyType": 2,
-  "ids": [1]
-}
-
-### 4. 할인 조회
-GET http://localhost:8080/v1/discounts
-
-### 5. 관리자용 전체 제품 조회 (페이지네이션)
-POST http://localhost:8080/v1/products/read?page=0&size=3
-X-MEMBER-ID: asdf
-ROLE: ADMIN
-
-### 1단계: 회원 생성 (필요시)
+### 1-3. 회원 생성
 POST http://localhost:8080/v1/members
 Content-Type: application/json
 
 {
   "memberId": "test@test.com",
-  "password": "test",
-  "name": "test-user",
-  "birthday": "2025-05-06",
-  "phoneNumber": "010-2244-5555",
-  "gender": "F",
+  "password": "test1234!",
+  "name": "테스트사용자",
+  "birthday": "1990-01-01",
+  "phoneNumber": "010-1234-5678",
+  "gender": "M",
   "tosAgreement": true,
   "privacyAgreement": true,
-  "marketingAgreement": true
+  "marketingAgreement": false
 }
 
-### 쿠폰생성(코드직접입력)
-POST http://localhost:8080/v1/coupons
-Content-Type: application/json
-X-MEMBER-ID: jle
-ROLE: ADMIN
+###
 
-{
-  "couponName": "무신사랑해 5000원 쿠폰",
-  "couponType": "FIXED",
-  "amount": 5000,
-  "minOrderPrice": 0 ,
-  "maxDiscountPrice": 0,
-  "couponStartDate": "2025-05-02",
-  "couponEndDate": "2029-05-05",
-  "issueType": "CODE",
-  "couponIssueCode": "TESTCOUPON",
-  "comment": ""
-}
+### ===============================================
+### STEP 2: 주문 생성
+### ===============================================
 
-### 쿠폰발급
-POST http://localhost:8080/v1/coupons/issue
-X-MEMBER-ID: test@test.com
-Content-Type: application/json
-
-{
-  "couponIssueCode": "TESTCOUPON"
-}
-
-### 보유 쿠폰 조회
-GET http://localhost:8080/v1/members/me/coupons
-X-MEMBER-ID: test@test.com
-
-### 2단계: 주문 생성 (orderId 획득)
 POST http://localhost:8080/v1/orders
 Content-Type: application/json
 X-MEMBER-ID: test@test.com
@@ -150,11 +95,11 @@ X-MEMBER-ID: test@test.com
 {
   "addressInfo": {
     "address1": "서울특별시 강남구 테헤란로 123",
-    "address2": "101동 202호",
-    "postalCode": "06233",
-    "receiver": "홍길동",
-    "phoneNumber": "01012345678",
-    "email": "hong@test.com"
+    "address2": "테스트빌딩 10층",
+    "postalCode": "06234",
+    "receiver": "테스트사용자",
+    "phoneNumber": "010-1234-5678",
+    "email": "test@test.com"
   },
   "items": [
     {
@@ -165,43 +110,303 @@ X-MEMBER-ID: test@test.com
   ],
   "paymentMethod": "CARD",
   "orderDiscount": {
-    "couponId": 1,
+    "couponId": null,
     "points": 0
   },
   "orderDetail": {
-    "originalTotal": 36666,
-    "discountedTotal": 30666,
-    "productDiscount": 6000,
-    "additionalDiscount": 5000,
+    "originalTotal": 100000,
+    "discountedTotal": 100000,
+    "productDiscount": 0,
+    "additionalDiscount": 0,
     "shippingFee": 3000,
-    "finalAmount": 28666
+    "finalAmount": 103000
   }
 }
 
-#### 3단계: 결제 승인 (실제로는 토스 위젯에서 받은 데이터 사용)
-## 주의: 이 요청은 유효한 paymentKey가 없으면 실패합니다
-## 실제 paymentKey는 토스 결제 위젯을 통해서만 얻을 수 있습니다
-#POST http://localhost:8080/v1/payments/confirm
-#Content-Type: application/json
-#
-#{
-#  "paymentKey": "test_payment_key_12345",
-#  "orderId": "ORD20260115222351538",
-#  "amount": 36666
-#}
+### ⚠️ 중요: 응답에서 다음 정보를 복사하세요!
+### - orderNumber: "ORD20260120..." ← 결제 승인에 필요
+### - totalPrice: 103000 ← 금액 검증에 필요
+###
+### 📝 복사한 정보:
+### orderNumber: ___________________
+### totalPrice: ___________________
+
+###
 
 ### ===============================================
-### 실제 토스 API 테스트 (직접 토스 API 호출)
+### STEP 3: 결제 전 상태 확인
 ### ===============================================
 
-### 토스 API로 직접 결제 승인 요청 (실제 토스 서버)
-# 주의: 이것도 유효한 paymentKey가 필요합니다
-POST https://api.tosspayments.com/v1/payments/confirm
+### 3-1. 주문 상태 확인
+GET http://localhost:8080/v1/orders/1
+X-MEMBER-ID: test@test.com
+
+### ✅ 확인: orderStatus = "PAYMENT_PENDING"
+
+###
+
+### 3-2. 상품 재고 확인
+GET http://localhost:8080/v1/products/1
+
+### ✅ 확인: stockQuantity = 100 (아직 차감 안됨)
+
+###
+
+### ===============================================
+### STEP 4: 결제 승인 (통합 처리)
+### ===============================================
+
+### 4-1. 결제 승인 + 주문 처리 (하나의 API로 통합!)
+### ⚠️ orderId와 amount를 위에서 복사한 값으로 변경하세요!
+POST http://localhost:8080/v1/payments/confirm
 Content-Type: application/json
-Authorization: Basic dGVzdF9za19aMWFPd1g3SzhtWW9BTzVhZDJxOTh5UXh6dk5QOg==
 
 {
-  "paymentKey": "test_payment_key",
-  "orderId": "test_order_123",
-  "amount": 148586
+  "paymentKey": "test_payment_key_12345",
+  "orderId": "ORD20260120183025456",
+  "amount": 103000
 }
+
+### ✅ 예상 결과:
+### - 토스 API 호출 (테스트 환경에서는 실패할 수 있음)
+### - 주문 상태: PAYMENT_PENDING → PAYMENT_COMPLETED
+### - 주문상품 상태: PAYMENT_PENDING → PAYMENT_COMPLETED
+### - 재고: 100 → 98 (2개 차감)
+
+###
+
+### ===============================================
+### STEP 5: 결제 후 상태 확인
+### ===============================================
+
+### 5-1. 주문 상태 확인
+GET http://localhost:8080/v1/orders/1
+X-MEMBER-ID: test@test.com
+
+### ✅ 확인:
+### - orderStatus: "PAYMENT_COMPLETED" ← 변경됨!
+### - orderProducts[].orderProductStatus: "PAYMENT_COMPLETED" ← 변경됨!
+
+###
+
+### 5-2. 상품 재고 확인
+GET http://localhost:8080/v1/products/1
+
+### ✅ 확인:
+### - productOptions[0].stockQuantity: 98 ← 차감됨! (100 - 2)
+
+###
+
+### 5-3. 내 주문 목록 조회
+POST http://localhost:8080/v1/orders/search
+Content-Type: application/json
+X-MEMBER-ID: test@test.com
+
+{
+  "conditions": {
+    "type": "ALL",
+    "status": null,
+    "startDate": "2025-01-01",
+    "endDate": "2026-12-31"
+  },
+  "pageable": {
+    "page": 0,
+    "size": 10,
+    "sort": {
+      "direction": "DESC",
+      "properties": ["orderDate"]
+    }
+  }
+}
+
+###
+
+### ===============================================
+### BONUS 1: 멱등성 테스트 (중복 결제 방지)
+### ===============================================
+
+### 6-1. 동일한 주문에 대해 다시 결제 시도
+### ⚠️ orderId를 이미 결제 완료한 주문번호로 설정
+POST http://localhost:8080/v1/payments/confirm
+Content-Type: application/json
+
+{
+  "paymentKey": "test_payment_key_67890",
+  "orderId": "ORD20260120183025456",
+  "amount": 103000
+}
+
+### ✅ 예상 응답:
+### {
+###   "status": "ALREADY_COMPLETED",
+###   "message": "이미 결제가 완료된 주문입니다.",
+###   "orderNumber": "ORD20260120183025456"
+### }
+
+###
+
+### ===============================================
+### BONUS 2: 금액 불일치 테스트
+### ===============================================
+
+### 6-2. 잘못된 금액으로 결제 시도
+POST http://localhost:8080/v1/payments/confirm
+Content-Type: application/json
+
+{
+  "paymentKey": "test_payment_key_99999",
+  "orderId": "ORD20260120183025456",
+  "amount": 999999
+}
+
+### ✅ 예상 응답: 400 Bad Request
+### {
+###   "error": "결제 금액이 일치하지 않습니다. 주문금액: 103000, 결제금액: 999999"
+### }
+
+###
+
+### ===============================================
+### BONUS 3: 존재하지 않는 주문 테스트
+### ===============================================
+
+### 6-3. 존재하지 않는 주문번호로 결제 시도
+POST http://localhost:8080/v1/payments/confirm
+Content-Type: application/json
+
+{
+  "paymentKey": "test_payment_key_00000",
+  "orderId": "ORD99999999999999",
+  "amount": 100000
+}
+
+### ✅ 예상 응답: 400 Bad Request
+### {
+###   "error": "주문을 찾을 수 없습니다: ORD99999999999999"
+### }
+
+###
+
+### ===============================================
+### BONUS 4: 재고 부족 테스트
+### ===============================================
+
+### 6-4. 재고를 초과하는 주문 생성 후 결제
+POST http://localhost:8080/v1/orders
+Content-Type: application/json
+X-MEMBER-ID: test@test.com
+
+{
+  "addressInfo": {
+    "address1": "서울특별시 강남구",
+    "address2": "테스트",
+    "postalCode": "06234",
+    "receiver": "테스트",
+    "phoneNumber": "010-1234-5678",
+    "email": "test@test.com"
+  },
+  "items": [
+    {
+      "productId": 1,
+      "productOptionId": 1,
+      "quantity": 200
+    }
+  ],
+  "paymentMethod": "CARD",
+  "orderDiscount": {
+    "couponId": null,
+    "points": 0
+  },
+  "orderDetail": {
+    "originalTotal": 10000000,
+    "discountedTotal": 10000000,
+    "productDiscount": 0,
+    "additionalDiscount": 0,
+    "shippingFee": 3000,
+    "finalAmount": 10003000
+  }
+}
+
+### 주문은 생성되지만, 결제 시 재고 부족으로 실패해야 함
+
+POST http://localhost:8080/v1/payments/confirm
+Content-Type: application/json
+
+{
+  "paymentKey": "test_payment_key_stock",
+  "orderId": "위에서_받은_orderNumber",
+  "amount": 10003000
+}
+
+### ✅ 예상: 500 Internal Server Error
+### {
+###   "error": "재고가 부족합니다. 현재 재고: 98, 요청 수량: 200"
+### }
+
+###
+
+### ===============================================
+### 테스트 가이드 조회
+### ===============================================
+
+GET http://localhost:8080/v1/payments/test/guide
+
+###
+
+### ===============================================
+### 📊 테스트 결과 체크리스트
+### ===============================================
+###
+### ✅ STEP 1: 초기 데이터 생성
+### [ ] 카테고리 생성 성공
+### [ ] 제품 등록 성공 (stockQuantity: 100)
+### [ ] 회원 생성 성공
+###
+### ✅ STEP 2: 주문 생성
+### [ ] 주문 생성 성공
+### [ ] orderNumber 확인 및 복사
+### [ ] totalPrice 확인 및 복사
+### [ ] orderStatus: "PAYMENT_PENDING"
+###
+### ✅ STEP 3: 결제 전 상태
+### [ ] 주문 상태: PAYMENT_PENDING
+### [ ] 재고: 100 (차감 안됨)
+###
+### ✅ STEP 4: 결제 승인 (통합 처리)
+### [ ] 결제 승인 성공 (200 OK)
+### [ ] 토스 API 호출 로그 확인
+### [ ] 주문 처리 로그 확인
+###
+### ✅ STEP 5: 결제 후 상태
+### [ ] 주문 상태: PAYMENT_COMPLETED ✅
+### [ ] 주문상품 상태: PAYMENT_COMPLETED ✅
+### [ ] 재고: 98 (2개 차감) ✅
+### [ ] 내 주문 목록에 표시 ✅
+###
+### ✅ BONUS: 에러 케이스
+### [ ] 중복 결제 방지 확인 (ALREADY_COMPLETED)
+### [ ] 금액 불일치 검증 확인
+### [ ] 존재하지 않는 주문 에러 처리
+### [ ] 재고 부족 에러 처리
+###
+### ===============================================
+### 🎯 개선사항 요약
+### ===============================================
+###
+### ✨ Before (기존):
+### 1. confirmPayment() - 토스 API 호출
+### 2. processPaymentSuccess() - 주문 처리 (별도 호출)
+### → 두 메서드가 분리되어 있어 에러 가능성 높음
+###
+### ✨ After (개선):
+### 1. confirmPayment() - 토스 API + 주문 처리 통합
+### → 하나의 트랜잭션으로 원자성 보장
+###
+### 장점:
+### ✅ 트랜잭션 보장 (결제 성공 = 주문 처리 완료)
+### ✅ 멱등성 보장 (중복 결제 방지)
+### ✅ 금액 검증 (주문 금액 != 결제 금액 시 에러)
+### ✅ 재고 검증 (재고 부족 시 에러)
+### ✅ 코드 간소화 (유지보수 용이)
+###
+### ===============================================

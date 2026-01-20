@@ -237,7 +237,7 @@ ROLE: ADMIN
 
 
 ### 8-1. 옵션 생성1
-POST localhost:8080/v1/options
+POST http://localhost:8080/v1/options
 content-type: application/json
 X-MEMBER-ID: asdf
 ROLE: ADMIN
@@ -278,14 +278,14 @@ ROLE: ADMIN
 
 
 ### 9. 전체 옵션 조회 (옵션 테이블에 저장된 것만 조회 가능, 상품 등록하면서 자동 저장된 옵션은 조회 x)
-GET localhost:8080/v1/options?page=0&size=3
+GET http://localhost:8080/v1/options?page=0&size=3
 content-type: application/json
 X-MEMBER-ID: asdf
 ROLE: ADMIN
 
 
 ### 10. 옵션 삭제
-POST localhost:8080/v1/options/delete-option
+POST http://localhost:8080/v1/options/delete-option
 content-type: application/json
 X-MEMBER-ID: asdf
 ROLE: ADMIN
