@@ -44,7 +44,6 @@ public class Member {
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 
-    @NotNull
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;
