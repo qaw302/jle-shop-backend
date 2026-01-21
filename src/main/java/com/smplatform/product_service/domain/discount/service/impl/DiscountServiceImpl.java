@@ -3,8 +3,10 @@ package com.smplatform.product_service.domain.discount.service.impl;
 import com.smplatform.product_service.domain.discount.dto.DiscountRequestDto;
 import com.smplatform.product_service.domain.discount.dto.DiscountResponseDto;
 import com.smplatform.product_service.domain.discount.entity.Discount;
+import com.smplatform.product_service.domain.discount.entity.DiscountTarget;
 import com.smplatform.product_service.domain.discount.exception.DiscountNotFoundException;
 import com.smplatform.product_service.domain.discount.repository.DiscountRepository;
+import com.smplatform.product_service.domain.discount.repository.DiscountTargetRepository;
 import com.smplatform.product_service.domain.discount.service.DiscountService;
 import com.smplatform.product_service.domain.product.entity.Product;
 import com.smplatform.product_service.domain.product.exception.ProductNotFoundException;
@@ -26,6 +28,7 @@ import java.util.Objects;
 public class DiscountServiceImpl implements DiscountService {
 
     private final DiscountRepository discountRepository;
+    private final DiscountTargetRepository discountTargetRepository;
     private final ProductCategoryMappingService productCategoryMappingService;
     private final ProductRepository productRepository;
 
@@ -45,8 +48,30 @@ public class DiscountServiceImpl implements DiscountService {
     public String createDiscount(DiscountRequestDto.DiscountRegister discountRequestDto) {
         Discount entity = discountRequestDto.toEntity();
         discountRepository.save(entity);
-        setProductsById(Discount.ApplyType.fromTypeNum(discountRequestDto.getApplyType()), entity, discountRequestDto.getIds());
+        Discount.ApplyType applyType = Discount.ApplyType.fromTypeNum(discountRequestDto.getApplyType());
+        discountTargetRepository.saveAll(buildDiscountTargets(applyType, entity, discountRequestDto.getIds()));
+        setProductsById(applyType, entity, discountRequestDto.getIds());
         return String.valueOf(entity.getDiscountId());
+    }
+
+    private List<DiscountTarget> buildDiscountTargets(Discount.ApplyType applyType, Discount discount, List<Long> ids) {
+        if (applyType == Discount.ApplyType.ALL) {
+            return List.of(DiscountTarget.builder()
+                    .discount(discount)
+                    .applyType(applyType)
+                    .targetId(null)
+                    .build());
+        }
+        if (Objects.isNull(ids) || ids.isEmpty()) {
+            throw new IllegalArgumentException("할인 적용 대상이 올바르지 않습니다");
+        }
+        return ids.stream()
+                .map(id -> DiscountTarget.builder()
+                        .discount(discount)
+                        .applyType(applyType)
+                        .targetId(id)
+                        .build())
+                .toList();
     }
 
     private void setProductsById(Discount.ApplyType applyType, Discount discount, List<Long> ids) {
@@ -108,6 +133,7 @@ public class DiscountServiceImpl implements DiscountService {
         }
 
         // 할인 삭제
+        discountTargetRepository.deleteByDiscount(discount);
         discountRepository.deleteById(discountId);
         log.info("할인 ID {} 삭제 완료", discountId);
 

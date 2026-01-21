@@ -50,13 +50,115 @@ ROLE: ADMIN
   "discountType": "할인율",
   "discountValue": 10,
   "discountStartDate": "2025-01-01T00:00:00.000Z",
-  "discountEndDate": "2025-12-31T00:00:00.000Z",
+  "discountEndDate": "2026-12-31T00:00:00.000Z",
   "applyType": 2,
   "ids": [1]
 }
 
 ### 1-2. 할인 조회
 GET http://localhost:8080/v1/discounts
+
+### 1-3. 상품 등록 (할인 미지정, 카테고리 할인 자동 적용)
+POST http://localhost:8080/v1/products
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "name": "sample-product-category-discount",
+  "description": "product description",
+  "categoryId": 3,
+  "price": 18000,
+  "summaryDescription": "summary",
+  "simpleDescription": "simple",
+  "productOptions": [
+    {
+      "productOptionName": "option-1",
+      "productOptionDetails": [
+        {
+          "productOptionType": "color",
+          "productOptionDetailName": "black"
+        }
+      ],
+      "stockQuantity": 10,
+      "additionalPrice": 0
+    }
+  ],
+  "thumbnail": "/thumbnail/path",
+  "productImages": {
+    "paths": [
+      "/img/1"
+    ]
+  },
+  "tags": [
+    {
+      "tagName": "tag-1"
+    }
+  ]
+}
+
+### 1-4. 단일 상품 조회 (카테고리 할인 적용 확인, id 수정)
+GET http://localhost:8080/v1/products/1
+X-MEMBER-ID: test
+
+### 1-5. 전체 할인 등록
+POST http://localhost:8080/v1/discounts
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "discountName": "product-test-all-discount",
+  "discountType": "할인율",
+  "discountValue": 5,
+  "discountStartDate": "2025-01-01T00:00:00.000Z",
+  "discountEndDate": "2026-12-31T00:00:00.000Z",
+  "applyType": 0
+}
+
+### 1-6. 상품 등록 (할인 미지정, 전체 할인 자동 적용)
+POST http://localhost:8080/v1/products
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "name": "sample-product-all-discount",
+  "description": "product description",
+  "categoryId": 3,
+  "price": 19000,
+  "summaryDescription": "summary",
+  "simpleDescription": "simple",
+  "productOptions": [
+    {
+      "productOptionName": "option-1",
+      "productOptionDetails": [
+        {
+          "productOptionType": "color",
+          "productOptionDetailName": "white"
+        }
+      ],
+      "stockQuantity": 10,
+      "additionalPrice": 0
+    }
+  ],
+  "thumbnail": "/thumbnail/path",
+  "productImages": {
+    "paths": [
+      "/img/2"
+    ]
+  },
+  "tags": [
+    {
+      "tagName": "tag-2"
+    }
+  ]
+}
+
+### 1-7. 단일 상품 조회 (전체 할인 적용 확인, id 수정)
+GET http://localhost:8080/v1/products/2
+X-MEMBER-ID: test
+
 
 ### 2. 상품 등록 (할인 없음)
 POST http://localhost:8080/v1/products

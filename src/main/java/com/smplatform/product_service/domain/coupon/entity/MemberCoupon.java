@@ -45,4 +45,12 @@ public class MemberCoupon {
     public static MemberCoupon createMemberCoupon(Member member, Coupon coupon) {
         return new MemberCoupon(member, coupon);
     }
+
+    public void markUsed() {
+        this.status = MemberCouponStatus.USED;
+    }
+
+    public void markExpired() {
+        this.status = MemberCouponStatus.EXPIRED;
+    }
 }

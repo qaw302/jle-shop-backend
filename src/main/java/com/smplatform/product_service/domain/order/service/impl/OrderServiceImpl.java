@@ -234,6 +234,9 @@ public class OrderServiceImpl implements OrderService {
                     originalTotalPrice.get(),
                     productTotalDiscountAmount);
             orderBenefitRepository.save(orderBenefit);
+            if (couponDiscount > 0 && usedMemberCoupon != null) {
+                usedMemberCoupon.markUsed();
+            }
         } else {
             // 혜택이 없어도 원가 정보는 저장
             OrderBenefit orderBenefit = new OrderBenefit(
