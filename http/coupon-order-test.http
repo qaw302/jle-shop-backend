@@ -83,8 +83,8 @@ ROLE: ADMIN
   "amount": 1000,
   "minOrderPrice": 0,
   "maxDiscountPrice": 0,
-  "couponStartDate": "2024-01-01",
-  "couponEndDate": "2010-12-31",
+  "couponStartDate": "2024-01-01T00:00:00",
+  "couponEndDate": "2029-12-31T23:59:59",
   "issueType": "CODE",
   "couponIssueCode": "TESTCOUPON-ORDER",
   "comment": ""

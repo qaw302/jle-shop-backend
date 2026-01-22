@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -39,10 +38,10 @@ public class Coupon {
     private int discountAmount;
 
     @Column(name = "coupon_start_at")
-    private LocalDate couponStartAt;
+    private LocalDateTime couponStartAt;
 
     @Column(name = "coupon_end_at")
-    private LocalDate couponEndAt;
+    private LocalDateTime couponEndAt;
 
     @Column(name = "min_order_price")
     private int minOrderPrice;
@@ -89,9 +88,10 @@ public class Coupon {
     }
 
     public boolean isAvailable() {
+        LocalDateTime now = LocalDateTime.now();
         return !isDeleted()
-                && (couponStartAt == null || !LocalDate.now().isBefore(couponStartAt))
-                && (couponEndAt   == null || !LocalDate.now().isAfter(couponEndAt));
+                && (couponStartAt == null || !now.isBefore(couponStartAt))
+                && (couponEndAt == null || !now.isAfter(couponEndAt));
     }
 
     public int calculateDiscountedPrice(int originalPrice) {

@@ -17,7 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -48,10 +48,10 @@ public class MemberCouponServiceImpl implements MemberCouponService {
         memberRepository.findById(memberId).orElseThrow(()->new MemberNotFoundException(memberId));
         List<MemberCoupon> activeCoupons = memberCouponRepository
                 .findAllByMemberMemberIdAndStatus(memberId, MemberCouponStatus.ACTIVE);
-        LocalDate today = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
         activeCoupons.forEach(memberCoupon -> {
-            LocalDate endAt = memberCoupon.getCoupon().getCouponEndAt();
-            if (endAt != null && endAt.isBefore(today)) {
+            LocalDateTime endAt = memberCoupon.getCoupon().getCouponEndAt();
+            if (endAt != null && endAt.isBefore(now)) {
                 memberCoupon.markExpired();
             }
         });

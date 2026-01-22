@@ -10,8 +10,8 @@ ROLE: ADMIN
   "amount": 50,
   "minOrderPrice": 50000 ,
   "maxDiscountPrice": 1000,
-  "couponStartDate": "2025-04-02",
-  "couponEndDate": "2028-04-05",
+  "couponStartDate": "2025-04-02T00:00:00",
+  "couponEndDate": "2028-04-05T23:59:59",
   "issueType": "AUTO",
   "couponIssueCode": "",
   "comment": ""
@@ -29,8 +29,8 @@ ROLE: ADMIN
   "amount": 5000,
   "minOrderPrice": 0 ,
   "maxDiscountPrice": 0,
-  "couponStartDate": "2025-05-02",
-  "couponEndDate": "2025-05-05",
+  "couponStartDate": "2025-05-02T00:00:00",
+  "couponEndDate": "2025-05-05T23:59:59",
   "issueType": "CODE",
   "couponIssueCode": "TESTCOUPON",
   "comment": ""
@@ -68,8 +68,8 @@ ROLE: ADMIN
 
 {
   "couponName": null,
-  "couponStartDate": "2025-05-01",
-  "couponEndDate": "2025-05-07"
+  "couponStartDate": "2025-05-01T00:00:00",
+  "couponEndDate": "2025-05-07T23:59:59"
 }
 
 ### 쿠폰 삭제
