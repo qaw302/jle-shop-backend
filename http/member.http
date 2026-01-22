@@ -141,6 +141,26 @@ X-MEMBER-ID: test@test.com
 GET http://localhost:8080/v1/address
 X-MEMBER-ID: test@test.com
 
+### 4-1. 배송지 수정으로 기본 배송지 전환 (addressId는 조회 결과에서 선택)
+POST http://localhost:8080/v1/update-address
+Content-Type: application/json
+X-MEMBER-ID: test@test.com
+
+{
+  "addressId": 2,
+  "alias": "회사",
+  "zipcode": "54321",
+  "address1": "경기도 성남시 분당구 대왕판교로 645번길 16",
+  "address2": "B동 11층",
+  "receiverName": "이몽룡",
+  "phoneNumber": "010-3333-4444",
+  "isDefault": 1
+}
+
+### 4-2. 전체 배송지 조회 (기본 배송지가 1개로 유지되는지 확인)
+GET http://localhost:8080/v1/address
+X-MEMBER-ID: test@test.com
+
 ### 5. 기본 배송지 삭제 (예: addressId = 3 → 실제 응답에서 ID 확인해서 대입)
 POST http://localhost:8080/v1/delete-address
 Content-Type: application/json
