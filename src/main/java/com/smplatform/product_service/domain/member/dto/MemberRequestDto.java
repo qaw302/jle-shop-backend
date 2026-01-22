@@ -36,7 +36,6 @@ public class MemberRequestDto {
         @NotBlank
         private String phoneNumber;
 
-        @NotNull
         private Gender gender;
 
         private Boolean tosAgreement; // Optional
