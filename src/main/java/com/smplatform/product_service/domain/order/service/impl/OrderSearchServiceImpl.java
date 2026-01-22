@@ -1,8 +1,8 @@
 package com.smplatform.product_service.domain.order.service.impl;
 
+import com.smplatform.product_service.domain.order.dto.AdminOrderSearchRequestDto;
 import com.smplatform.product_service.domain.order.dto.OrderSearchRequestDto;
 import com.smplatform.product_service.domain.order.dto.OrderSearchResponseDto;
-import com.smplatform.product_service.domain.order.entity.Order;
 import com.smplatform.product_service.domain.order.entity.OrderProduct;
 import com.smplatform.product_service.domain.order.repository.OrderRepository;
 import com.smplatform.product_service.domain.order.service.OrderSearchService;
@@ -12,11 +12,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class OrderSearchServiceImpl implements OrderSearchService {
@@ -37,9 +39,12 @@ public class OrderSearchServiceImpl implements OrderSearchService {
         List<Long> orderIds = resultPage.getContent().stream().map(OrderSearchResponseDto.MemberOrder::getOrderId).toList();
         List<OrderProduct> orderProducts = orderRepository.findOrderProductsByOrderIds(orderIds);
 
-        Map<Order, List<OrderProduct>> orderProductMap = orderProducts.stream().collect(Collectors.groupingBy(OrderProduct::getOrder));
+        Map<Long, List<OrderProduct>> orderProductMap = orderProducts.stream()
+                .collect(Collectors.groupingBy(orderProduct -> orderProduct.getOrder().getOrderId()));
         resultPage.getContent().forEach(order -> order.setProducts(
-                orderProductMap.getOrDefault(order, List.of()).stream().map(OrderSearchResponseDto.OrderProductDto::of).toList()
+                orderProductMap.getOrDefault(order.getOrderId(), List.of()).stream()
+                        .map(OrderSearchResponseDto.OrderProductDto::of)
+                        .toList()
         ));
 
         return new OrderSearchResponseDto.MemberOrdersGet(
@@ -50,4 +55,27 @@ public class OrderSearchServiceImpl implements OrderSearchService {
                 resultPage.getTotalPages()
         );
     }
+
+    @Override
+    public OrderSearchResponseDto.AdminOrdersGet getAdminOrders(AdminOrderSearchRequestDto.AdminOrdersSearch request) {
+        // PageableDto로 Pageable 객체 생성
+        AdminOrderSearchRequestDto.PageableDto pageableDto = request.getPageable();
+        Pageable pageable = PageRequest.of(
+                pageableDto.getPage(),
+                pageableDto.getSize(),
+                Sort.by(pageableDto.getDirection(), pageableDto.getSortBy())
+        );
+
+        // response의 "content" 생성
+        Page<OrderSearchResponseDto.AdminOrder> resultPage = orderRepository.findAllAdminOrderBy(request, pageable);
+
+        return new OrderSearchResponseDto.AdminOrdersGet(
+                resultPage.getContent(),
+                resultPage.getNumber(),
+                resultPage.getSize(),
+                resultPage.getTotalElements(),
+                resultPage.getTotalPages()
+        );
+    }
 }
+

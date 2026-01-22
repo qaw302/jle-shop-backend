@@ -30,7 +30,7 @@ public class AddressServiceImpl implements AddressService {
                 memberRepository.findById(memberId)
                         .orElseThrow(() -> new MemberNotFoundException("멤버 " + memberId + "를 찾을 수 없습니다."))
         );
-        if (Boolean.TRUE.equals(address.getIsDefault())) {
+        if (requestDto.getIsDefault() == 1) {
             addressRepository.findByMember_MemberIdAndIsDefault(memberId, true)
                     .ifPresent(existingDefault -> existingDefault.setIsDefault(false));
         }
@@ -54,7 +54,7 @@ public class AddressServiceImpl implements AddressService {
         if (!address.getMember().getMemberId().equals(memberId)) {
             throw new UnauthorizedException("본인이 아닌 경우 수정할 수 없습니다.");
         }
-        if (Boolean.TRUE.equals(address.getIsDefault())) {
+        if (requestDto.getIsDefault() == 1) {
             addressRepository.findByMember_MemberIdAndIsDefault(memberId, true)
                     .ifPresent(existingDefault -> existingDefault.setIsDefault(false));
         }

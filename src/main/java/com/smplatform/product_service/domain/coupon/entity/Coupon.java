@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -39,10 +38,10 @@ public class Coupon {
     private int discountAmount;
 
     @Column(name = "coupon_start_at")
-    private LocalDate couponStartAt;
+    private LocalDateTime couponStartAt;
 
     @Column(name = "coupon_end_at")
-    private LocalDate couponEndAt;
+    private LocalDateTime couponEndAt;
 
     @Column(name = "min_order_price")
     private int minOrderPrice;
@@ -55,6 +54,9 @@ public class Coupon {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     private Coupon(CouponRequestDto.CouponCreate couponCreateDto) {
         this.couponName = couponCreateDto.getCouponName();
@@ -77,9 +79,19 @@ public class Coupon {
         return new Coupon(couponCreateDto);
     }
 
+    public void markDeleted() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     public boolean isAvailable() {
-        return (couponStartAt == null || !LocalDate.now().isBefore(couponStartAt))
-                && (couponEndAt   == null || !LocalDate.now().isAfter(couponEndAt));
+        LocalDateTime now = LocalDateTime.now();
+        return !isDeleted()
+                && (couponStartAt == null || !now.isBefore(couponStartAt))
+                && (couponEndAt == null || !now.isAfter(couponEndAt));
     }
 
     public int calculateDiscountedPrice(int originalPrice) {
@@ -94,7 +106,7 @@ public class Coupon {
             case FIXED:
                 discount = discountAmount;
                 break;
-            case PERCENT:
+            case RATE:
                 discount = (int) (originalPrice * (discountAmount / 100.0));
                 break;
             default:

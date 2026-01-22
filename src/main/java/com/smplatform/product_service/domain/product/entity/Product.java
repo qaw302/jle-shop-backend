@@ -74,4 +74,12 @@ public class Product {
     public void setCreatedAt() {
         this.createdAt = LocalDateTime.now();
     }
+
+    public void removeDiscount() {
+        this.discount = null;
+    }
+
+    public void applyDiscount(Discount discount) {
+        this.discount = discount;
+    }
 }

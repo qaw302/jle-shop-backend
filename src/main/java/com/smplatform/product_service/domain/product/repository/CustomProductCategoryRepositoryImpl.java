@@ -23,7 +23,10 @@ public class CustomProductCategoryRepositoryImpl implements CustomProductCategor
         return queryFactory.select(product)
                 .from(productCategoryMapping)
                 .innerJoin(productCategoryMapping.product, product)
-                .where(productCategoryMapping.category.categoryId.eq(categoryId))
+                .where(
+                        productCategoryMapping.category.categoryId.eq(categoryId),
+                        product.isDeleted.eq(false)
+                )
                 .fetch();
     }
 }

@@ -102,8 +102,17 @@ public class MemberServiceImpl implements MemberService {
 
     @Override
     public Void deleteMember(String id, MemberRequestDto.Withdraw withdrawDto) {
-        Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new MemberNotFoundException(id));
+        return withdrawMember(id, withdrawDto);
+    }
+
+    @Override
+    public Void withdrawMemberByAdmin(String memberId, MemberRequestDto.Withdraw withdrawDto) {
+        return withdrawMember(memberId, withdrawDto);
+    }
+
+    private Void withdrawMember(String memberId, MemberRequestDto.Withdraw withdrawDto) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
 
         member.delete();
 

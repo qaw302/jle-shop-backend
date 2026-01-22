@@ -8,4 +8,6 @@ import java.util.List;
 public interface ProductCategoryMappingRepository extends JpaRepository<ProductCategoryMapping, Integer>, CustomProductCategoryRepository {
 
     List<ProductCategoryMapping> findAllByCategoryCategoryId(int categoryId);
+
+    List<ProductCategoryMapping> findAllByCategoryCategoryIdAndProduct_IsDeletedFalse(int categoryId);
 }

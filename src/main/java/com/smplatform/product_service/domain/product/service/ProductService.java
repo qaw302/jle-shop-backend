@@ -13,6 +13,7 @@ public interface ProductService {
 
     String updateProduct(ProductRequestDto.ProductUpdate productDto);
 
+    String deleteProduct(long productId);
 
     List<ProductResponseDto.ProductGet> getProducts(ProductRequestDto.AdminProductSearchCondition condition, Pageable pageable);
 

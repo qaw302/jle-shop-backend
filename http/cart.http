@@ -11,7 +11,7 @@ ROLE: ADMIN
 }
 
 ### - 중분류 카테고리 생성
-POST localhost:8080/v1/categories
+POST http://localhost:8080/v1/categories
 content-type:application/json
 X-MEMBER-ID: asdf
 ROLE: ADMIN
@@ -23,7 +23,7 @@ ROLE: ADMIN
 }
 
 ### - 소분류 카테고리 생성
-POST localhost:8080/v1/categories
+POST http://localhost:8080/v1/categories
 content-type:application/json
 X-MEMBER-ID: asdf
 ROLE: ADMIN
@@ -35,7 +35,7 @@ ROLE: ADMIN
 }
 
 ### 3. 할인 저장
-POST localhost:8080/v1/discounts
+POST http://localhost:8080/v1/discounts
 content-type: application/json
 X-MEMBER-ID: asdf
 ROLE: ADMIN
@@ -51,7 +51,7 @@ ROLE: ADMIN
 }
 
 ### 4. 할인 조회
-GET localhost:8080/v1/discounts
+GET http://localhost:8080/v1/discounts
 
 ### - 제품 등록
 POST http://localhost:8080/v1/products

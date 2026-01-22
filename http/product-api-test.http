@@ -1,0 +1,317 @@
+# 상품 API 테스트 (카테고리/할인 포함 풀 시나리오)
+# 필요에 따라 id 값 수정
+
+### 0-1. 대분류 카테고리 생성
+POST http://localhost:8080/v1/categories
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "categoryName": "product-test-parent",
+  "categoryLevel": 1
+}
+
+### 0-2. 중분류 카테고리 생성 (parentCategoryId 수정)
+POST http://localhost:8080/v1/categories
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "parentCategoryId": 1,
+  "categoryName": "product-test-child",
+  "categoryLevel": 2
+}
+
+### 0-3. 소분류 카테고리 생성 (parentCategoryId 수정)
+POST http://localhost:8080/v1/categories
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "parentCategoryId": 2,
+  "categoryName": "product-test-leaf",
+  "categoryLevel": 3
+}
+
+### 0-4. 카테고리 전체 조회
+GET http://localhost:8080/v1/categories
+
+### 1-1. 할인 등록 (ids에 적용할 상품 id 필요)
+POST http://localhost:8080/v1/discounts
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "discountName": "product-test-discount",
+  "discountType": "할인율",
+  "discountValue": 10,
+  "discountStartDate": "2025-01-01T00:00:00.000Z",
+  "discountEndDate": "2026-12-31T00:00:00.000Z",
+  "applyType": 2,
+  "ids": [1]
+}
+
+### 1-2. 할인 조회
+GET http://localhost:8080/v1/discounts
+
+### 1-3. 상품 등록 (할인 미지정, 카테고리 할인 자동 적용)
+POST http://localhost:8080/v1/products
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "name": "sample-product-category-discount",
+  "description": "product description",
+  "categoryId": 3,
+  "price": 18000,
+  "summaryDescription": "summary",
+  "simpleDescription": "simple",
+  "productOptions": [
+    {
+      "productOptionName": "option-1",
+      "productOptionDetails": [
+        {
+          "productOptionType": "color",
+          "productOptionDetailName": "black"
+        }
+      ],
+      "stockQuantity": 10,
+      "additionalPrice": 0
+    }
+  ],
+  "thumbnail": "/thumbnail/path",
+  "productImages": {
+    "paths": [
+      "/img/1"
+    ]
+  },
+  "tags": [
+    {
+      "tagName": "tag-1"
+    }
+  ]
+}
+
+### 1-4. 단일 상품 조회 (카테고리 할인 적용 확인, id 수정)
+GET http://localhost:8080/v1/products/1
+X-MEMBER-ID: test
+
+### 1-5. 전체 할인 등록
+POST http://localhost:8080/v1/discounts
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "discountName": "product-test-all-discount",
+  "discountType": "할인율",
+  "discountValue": 5,
+  "discountStartDate": "2025-01-01T00:00:00.000Z",
+  "discountEndDate": "2026-12-31T00:00:00.000Z",
+  "applyType": 0
+}
+
+### 1-6. 상품 등록 (할인 미지정, 전체 할인 자동 적용)
+POST http://localhost:8080/v1/products
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "name": "sample-product-all-discount",
+  "description": "product description",
+  "categoryId": 3,
+  "price": 19000,
+  "summaryDescription": "summary",
+  "simpleDescription": "simple",
+  "productOptions": [
+    {
+      "productOptionName": "option-1",
+      "productOptionDetails": [
+        {
+          "productOptionType": "color",
+          "productOptionDetailName": "white"
+        }
+      ],
+      "stockQuantity": 10,
+      "additionalPrice": 0
+    }
+  ],
+  "thumbnail": "/thumbnail/path",
+  "productImages": {
+    "paths": [
+      "/img/2"
+    ]
+  },
+  "tags": [
+    {
+      "tagName": "tag-2"
+    }
+  ]
+}
+
+### 1-7. 단일 상품 조회 (전체 할인 적용 확인, id 수정)
+GET http://localhost:8080/v1/products/2
+X-MEMBER-ID: test
+
+
+### 2. 상품 등록 (할인 없음)
+POST http://localhost:8080/v1/products
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "name": "sample-product-1",
+  "description": "product description",
+  "categoryId": 3,
+  "price": 15000,
+  "summaryDescription": "summary",
+  "simpleDescription": "simple",
+  "productOptions": [
+    {
+      "productOptionName": "option-1",
+      "productOptionDetails": [
+        {
+          "productOptionType": "color",
+          "productOptionDetailName": "black"
+        },
+        {
+          "productOptionType": "size",
+          "productOptionDetailName": "M"
+        }
+      ],
+      "stockQuantity": 10,
+      "additionalPrice": 0
+    }
+  ],
+  "thumbnail": "/thumbnail/path",
+  "productImages": {
+    "paths": [
+      "/img/1",
+      "/img/2"
+    ]
+  },
+  "tags": [
+    {
+      "tagName": "tag-1"
+    }
+  ]
+}
+
+### 3. 상품 등록 (할인 포함, discountId 수정)
+POST http://localhost:8080/v1/products
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "name": "sample-product-2",
+  "description": "product description 2",
+  "categoryId": 3,
+  "price": 20000,
+  "discountId": 1,
+  "summaryDescription": "summary 2",
+  "simpleDescription": "simple 2",
+  "productOptions": [
+    {
+      "productOptionName": "option-1",
+      "productOptionDetails": [
+        {
+          "productOptionType": "color",
+          "productOptionDetailName": "white"
+        },
+        {
+          "productOptionType": "size",
+          "productOptionDetailName": "L"
+        }
+      ],
+      "stockQuantity": 5,
+      "additionalPrice": 1000
+    }
+  ],
+  "thumbnail": "/thumbnail/path2",
+  "productImages": {
+    "paths": [
+      "/img/3",
+      "/img/4"
+    ]
+  },
+  "tags": [
+    {
+      "tagName": "tag-2"
+    }
+  ]
+}
+
+### 4. 상품 수정 (id 수정)
+POST http://localhost:8080/v1/products/update-product
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "id": 1,
+  "name": "sample-product-1-updated",
+  "description": "updated description",
+  "categoryId": 3,
+  "price": 15900,
+  "summaryDescription": "summary updated",
+  "simpleDescription": "simple updated",
+  "thumbnailPath": "/thumbnail/path2",
+  "productImagePaths": {
+    "paths": [
+      "/img/1",
+      "/img/3"
+    ]
+  }
+}
+
+### 5. 단일 상품 조회
+GET http://localhost:8080/v1/products/1
+X-MEMBER-ID: test
+
+### 6. 관리자용 상품 목록 조회 (검색 조건 없음)
+POST http://localhost:8080/v1/products/read?page=0&size=10
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+### 7. 관리자용 상품 목록 조회 (검색)
+POST http://localhost:8080/v1/products/read?page=0&size=10
+Content-Type: application/json
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+{
+  "keyword": "sample"
+}
+
+### 8. 사용자용 상품 목록 조회 (카테고리 전체)
+POST http://localhost:8080/v1/0/products?page=0&size=10
+Content-Type: application/json
+X-MEMBER-ID: test
+
+### 9. 사용자용 상품 목록 조회 (카테고리 지정, categoryId 수정)
+POST http://localhost:8080/v1/3/products?page=0&size=10
+Content-Type: application/json
+X-MEMBER-ID: test
+
+### 10. 태그 목록 조회
+GET http://localhost:8080/v1/products/tags
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+### 11. 상품 삭제 (soft delete, id 수정)
+DELETE http://localhost:8080/v1/products/1
+X-MEMBER-ID: test
+ROLE: ADMIN
+
+### 12. 삭제 후 사용자용 조회로 노출 여부 확인
+POST http://localhost:8080/v1/0/products?page=0&size=10
+Content-Type: application/json
+X-MEMBER-ID: test

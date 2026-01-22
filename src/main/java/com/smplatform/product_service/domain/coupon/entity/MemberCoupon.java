@@ -11,7 +11,12 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-@Table(name = "member_coupons")
+@Table(
+        name = "member_coupons",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_member_coupons_member_coupon", columnNames = {"member_id", "coupon_id"})
+        }
+)
 public class MemberCoupon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,5 +49,13 @@ public class MemberCoupon {
 
     public static MemberCoupon createMemberCoupon(Member member, Coupon coupon) {
         return new MemberCoupon(member, coupon);
+    }
+
+    public void markUsed() {
+        this.status = MemberCouponStatus.USED;
+    }
+
+    public void markExpired() {
+        this.status = MemberCouponStatus.EXPIRED;
     }
 }

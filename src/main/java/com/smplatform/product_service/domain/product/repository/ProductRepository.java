@@ -1,5 +1,6 @@
 package com.smplatform.product_service.domain.product.repository;
 
+import com.smplatform.product_service.domain.discount.entity.Discount;
 import com.smplatform.product_service.domain.product.entity.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,4 +16,12 @@ public interface ProductRepository extends JpaRepository<Product, Long>, CustomP
 
     @EntityGraph(attributePaths = {"discount"})
     Optional<Product> findByProductId(Long productId);
+
+    @EntityGraph(attributePaths = {"discount"})
+    Optional<Product> findByProductIdAndIsDeletedFalse(Long productId);
+
+    @EntityGraph(attributePaths = {"discount"})
+    Page<Product> findAllByIsDeletedFalse(Pageable pageable);
+    
+    List<Product> findAllByDiscount(Discount discount);
 }

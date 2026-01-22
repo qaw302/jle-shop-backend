@@ -59,6 +59,18 @@ public class ProductController {
     }
 
     /**
+     * 제품 삭제 (soft delete)
+     *
+     * @param productId
+     * @return
+     */
+    @AdminOnly
+    @DeleteMapping("/products/{productId}")
+    public ResponseEntity<String> deleteProduct(@PathVariable long productId) {
+        return ResponseEntity.status(HttpStatus.OK).body(productService.deleteProduct(productId));
+    }
+
+    /**
      * 사용자용 상품 목록 조회
      *
      * @param pageable

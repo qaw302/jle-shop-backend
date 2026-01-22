@@ -1,0 +1,104 @@
+package com.smplatform.product_service.domain.order.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.domain.Sort;
+
+import java.time.LocalDate;
+import java.util.Optional;
+
+public class AdminOrderSearchRequestDto {
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor(access = AccessLevel.PROTECTED)
+    @Schema(name = "AdminOrderSearchRequest", description = "관리자 주문내역 검색 요청")
+    public static class AdminOrdersSearch {
+        @Schema(description = "검색 조건")
+        private SearchConditionsDto conditions;
+        @Schema(description = "페이징 정보")
+        private PageableDto pageable;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Schema(name = "AdminOrderSearchConditionsRequest", description = "관리자 주문 검색 조건")
+    public static class SearchConditionsDto {
+        @Schema(description = "주문 ID", example = "1")
+        private Long orderId;
+
+        @Schema(description = "주문 회원명", example = "jle")
+        private String orderMemberName;
+
+        @Schema(description = "주문 회원 ID", example = "jle@jle.com")
+        private String orderMemberId;
+
+        @Schema(description = "주문 상품명", example = "~~")
+        private String orderProductName;
+
+        @Schema(description = "검색 타입", example = "ALL")
+        private OrderSearchType type = OrderSearchType.ALL;
+
+        @Schema(description = "주문 상태 (한글 또는 영어)", example = "결제 완료 또는 PAYMENT_COMPLETED")
+        private String status;
+
+        @Schema(description = "조회 시작일", example = "2025-01-01")
+        private LocalDate startDate;
+
+        @Schema(description = "조회 종료일", example = "2025-05-05")
+        private LocalDate endDate;
+    }
+
+    public enum OrderSearchType {
+        ALL,
+        NORMAL,
+        CANCEL_RETURN_EXCHANGE
+    }
+
+    @Getter
+    @Schema(name = "AdminOrderSearchPageableRequest", description = "페이징 요청")
+    public static class PageableDto {
+        @Min(value = 0, message = "page 값은 0 이상이어야 합니다")
+        @Schema(description = "페이지 번호 (0부터 시작)", example = "0")
+        private int page = 0;
+
+        @Min(value = 1)
+        @Max(value = 100)
+        @Schema(description = "페이지 크기", example = "10")
+        private int size = 10;
+
+        @Schema(description = "정렬 정보")
+        private SortDto sort;
+
+        public Sort.Direction getDirection() {
+            return Optional.ofNullable(sort)
+                    .map(SortDto::getDirection)
+                    .flatMap(Sort.Direction::fromOptionalString)
+                    .orElse(Sort.Direction.DESC);
+        }
+
+        public String getSortBy() {
+            return Optional.ofNullable(sort)
+                    .map(SortDto::getProperty)
+                    .orElse("orderDate");
+        }
+    }
+
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Schema(name = "SortRequest", description = "정렬 정보")
+    public static class SortDto {
+        @Schema(description = "정렬 필드", example = "orderDate")
+        private String property;
+
+        @Schema(description = "정렬 방향", example = "desc")
+        private String direction;
+    }
+}

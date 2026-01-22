@@ -10,12 +10,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public enum OrderProductStatus {
     PAYMENT_PENDING("결제대기", StatusType.NORMAL),
-    PAID("결제완료", StatusType.NORMAL),
+    PAYMENT_COMPLETED("결제완료", StatusType.NORMAL),
     PREPARING("배송준비중",  StatusType.SHIPPING),
-    IN_TRANSIT("배송중", StatusType.SHIPPING),
-    DELEVERED("배송완료", StatusType.SHIPPING),
+    SHIPPING("배송중", StatusType.SHIPPING),
+    DELIVERED("배송완료", StatusType.SHIPPING),
+    PAYMENT_FAILED("결제실패", StatusType.NORMAL),
 
-    CANCEL_REQUEST("주문취소", StatusType.CANCEL_RETURN_EXCHANGE),
+    ORDER_CANCELLED("주문취소", StatusType.CANCEL_RETURN_EXCHANGE),
     CANCEL_COMPLETED("주문취소완료", StatusType.CANCEL_RETURN_EXCHANGE),
     RETURN_REQUEST("반품요청", StatusType.CANCEL_RETURN_EXCHANGE),
     RETURN_COMPLETED("반품완료", StatusType.CANCEL_RETURN_EXCHANGE),

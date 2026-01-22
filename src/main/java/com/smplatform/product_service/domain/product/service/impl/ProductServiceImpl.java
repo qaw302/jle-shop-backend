@@ -2,6 +2,7 @@ package com.smplatform.product_service.domain.product.service.impl;
 
 import com.smplatform.product_service.domain.discount.entity.Discount;
 import com.smplatform.product_service.domain.discount.repository.DiscountRepository;
+import com.smplatform.product_service.domain.discount.repository.DiscountTargetRepository;
 import com.smplatform.product_service.domain.product.dto.ProductImageResponseDto;
 import com.smplatform.product_service.domain.product.dto.ProductRequestDto;
 import com.smplatform.product_service.domain.product.dto.ProductResponseDto;
@@ -16,9 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +35,7 @@ public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
     private final DiscountRepository discountRepository;
+    private final DiscountTargetRepository discountTargetRepository;
     private final ProductOptionRepository productOptionRepository;
     private final ProductOptionDetailRepository productOptionDetailRepository;
     private final ProductImageService productImageService;
@@ -50,7 +54,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional(readOnly = true)
     public ProductResponseDto.ProductGet getProduct(long productId) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository.findByProductIdAndIsDeletedFalse(productId)
                 .orElseThrow(() -> new ProductNotFoundException(String.format("product { %d } not found", productId)));
 
         List<ProductOption> productOptions = productOptionRepository.findAllByProductProductId(productId);
@@ -84,7 +88,7 @@ public class ProductServiceImpl implements ProductService {
     public String saveProduct(ProductRequestDto.ProductSave productDto) {
         // 상품 저장
         Product productDtoEntity = productDto.toEntity();
-        Discount discount = discountRepository.findById(productDto.getDiscountId()).orElse(null);
+        Discount discount = resolveDiscountForNewProduct(productDto.getDiscountId(), productDto.getCategoryId());
         productDtoEntity.setDiscount(discount);
 
         Product product = productRepository.save(productDtoEntity);
@@ -135,6 +139,31 @@ public class ProductServiceImpl implements ProductService {
         return String.valueOf(product.getProductId());
     }
 
+    private Discount resolveDiscountForNewProduct(int discountId, int categoryId) {
+        if (discountId > 0) {
+            return discountRepository.findById(discountId).orElse(null);
+        }
+        LocalDateTime now = LocalDateTime.now();
+        List<Discount> categoryDiscounts = discountTargetRepository.findActiveDiscountsByTarget(
+                Discount.ApplyType.SPECIFIC_CATEGORY,
+                (long) categoryId,
+                now,
+                PageRequest.of(0, 1)
+        );
+        if (!categoryDiscounts.isEmpty()) {
+            return categoryDiscounts.get(0);
+        }
+        List<Discount> allDiscounts = discountTargetRepository.findActiveDiscountsByApplyType(
+                Discount.ApplyType.ALL,
+                now,
+                PageRequest.of(0, 1)
+        );
+        if (!allDiscounts.isEmpty()) {
+            return allDiscounts.get(0);
+        }
+        return null;
+    }
+
 
     /**
      * 단일 제품 수정
@@ -162,6 +191,18 @@ public class ProductServiceImpl implements ProductService {
                 product,
                 productDto.getProductImagePaths().getPaths()
         );
+
+        return String.valueOf(productRepository.save(product).getProductId());
+    }
+
+    @Override
+    @Transactional
+    public String deleteProduct(long productId) {
+        Product product = productRepository.findByProductIdAndIsDeletedFalse(productId)
+                .orElseThrow(() -> new ProductNotFoundException(String.format("product { %d } not found", productId)));
+
+        product.setDeleted(true);
+        product.setSelling(false);
 
         return String.valueOf(productRepository.save(product).getProductId());
     }
@@ -237,7 +278,9 @@ public class ProductServiceImpl implements ProductService {
 
         if (Objects.isNull(condition) || condition.isConditionEmpty()) {
             if (categoryId == 0) {
-                return productRepository.findAll(pageable).map(ProductResponseDto.ProductGetForUsers::of).toList();
+                return productRepository.findAllByIsDeletedFalse(pageable)
+                        .map(ProductResponseDto.ProductGetForUsers::of)
+                        .toList();
             } else {
                 return productCategoryMappingRepository.findAllByCategoryId(categoryId).stream()
                         .map(ProductResponseDto.ProductGetForUsers::of)

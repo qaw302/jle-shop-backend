@@ -24,13 +24,17 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
   
       - name: Grant execute permission to Gradle wrapper
         run: chmod +x ./gradlew
   
       - name: Clean and build the application
-        run: ./gradlew clean build
-  
+        run: ./gradlew build
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
   
@@ -40,11 +44,13 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
   
-      - name: Build and Push Docker image (multi-platform)
+      - name: Build and Push Docker image
         run: |
           docker buildx build \
-            --platform linux/amd64,linux/arm64 \
+            --platform linux/arm64 \
             -t $DOCKER_IMAGE \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
             --push .
 
   deploy:
@@ -85,6 +91,7 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: gradle
 
       # Generates and submits a dependency graph, enabling Dependabot Alerts for all project dependencies.
       # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md

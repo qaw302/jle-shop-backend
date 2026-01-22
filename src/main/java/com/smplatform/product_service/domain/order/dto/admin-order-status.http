@@ -1,0 +1,87 @@
+### 관리자 주문 상태 변경 API 테스트
+
+# 테스트에 사용할 변수
+@host = http://localhost:8080
+@member_id = test-user-for-order-status-change
+# @admin_token = Bearer ... # 관리자 인증이 필요한 경우 토큰을 여기에 설정하세요.
+
+### 1. (사용자) 테스트용 신규 주문 생성
+# 응답으로 받은 orderNumber를 다음 단계에서 사용합니다.
+POST {{host}}/v1/orders
+Content-Type: application/json
+X-MEMBER-ID: {{member_id}}
+
+{
+  "addressInfo": {
+    "address1": "서울시 강남구",
+    "address2": "테헤란로 123",
+    "postalCode": "06236",
+    "receiver": "테스트",
+    "phoneNumber": "010-0000-0000",
+    "email": "test@example.com"
+  },
+  "items": [
+    {
+      "productId": 1,
+      "productOptionId": 1,
+      "quantity": 1
+    }
+  ],
+  "paymentMethod": "CARD",
+  "orderDiscount": {
+    "couponId": null,
+    "points": 0
+  },
+  "orderDetail": {
+    "originalTotal": 50000,
+    "discountedTotal": 50000,
+    "productDiscount": 0,
+    "additionalDiscount": 0,
+    "shippingFee": 3000,
+    "finalAmount": 53000
+  }
+}
+
+> {%
+    client.global.set("orderNumber", response.body.orderNumber);
+%}
+
+### 2. (시스템) 생성된 주문에 대한 결제 성공 시뮬레이션
+# 주문 상태를 '결제 완료'로 변경합니다.
+POST {{host}}/v1/payments/test/simulate-success/{{orderNumber}}
+Content-Type: application/json
+
+### 3. (관리자) 주문 검색을 통해 숫자 형식의 orderId 조회
+# 관리자 API는 숫자 형식의 ID를 사용하므로, 주문 검색을 통해 이를 조회합니다.
+POST {{host}}/v1/admin/orders/search
+Content-Type: application/json
+# Authorization: {{admin_token}}
+
+{
+  "conditions": {
+    "orderMemberId": "{{member_id}}"
+  },
+  "pageable": { "page": 0, "size": 1 }
+}
+
+> {%
+    // 검색 결과의 첫 번째 주문 ID를 변수로 저장합니다.
+    client.global.set("orderId", response.body.content[0].orderId);
+%}
+
+### 4. (관리자) 주문 상태 변경 API 호출 (핵심 테스트)
+# 조회한 orderId를 사용하여 주문 상태를 '배송 준비중'으로 변경합니다.
+# orderStatus에 들어갈 수 있는 값: PREPARING_FOR_DELIVERY, IN_DELIVERY, DELIVERY_COMPLETED 등
+POST {{host}}/v1/admin/orders/status
+Content-Type: application/json
+# Authorization: {{admin_token}}
+
+{
+  "orderId": {{orderId}},
+  "orderStatus": "PREPARING_FOR_DELIVERY"
+}
+
+### 5. (사용자) 주문 상세 조회로 상태 변경 확인
+# 사용자 측 API에서도 상태 변경이 잘 반영되었는지 확인합니다.
+GET {{host}}/v1/orders/{{orderId}}
+X-MEMBER-ID: {{member_id}}

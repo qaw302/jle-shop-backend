@@ -2,7 +2,6 @@ package com.smplatform.product_service.domain.coupon.service;
 
 import com.smplatform.product_service.domain.coupon.dto.CouponRequestDto;
 import com.smplatform.product_service.domain.coupon.dto.CouponResponseDto;
-import jakarta.validation.Valid;
 
 import java.util.List;
 

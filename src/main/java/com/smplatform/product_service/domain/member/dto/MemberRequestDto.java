@@ -11,7 +11,6 @@ import com.smplatform.product_service.domain.member.enums.search.OrderDateSearch
 import com.smplatform.product_service.domain.member.enums.search.OrderSerach;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -36,7 +35,6 @@ public class MemberRequestDto {
         @NotBlank
         private String phoneNumber;
 
-        @NotNull
         private Gender gender;
 
         private Boolean tosAgreement; // Optional
@@ -68,6 +66,7 @@ public class MemberRequestDto {
         private String name;
         private String email;
         private MemberLevel level;
+        private MemberStatus status;
         private DateSerach dateSearch; // 가입일, 생일
         private LocalDate startDate;
         private LocalDate endDate;

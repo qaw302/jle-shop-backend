@@ -1,0 +1,165 @@
+### 쿠폰 사용 후 삭제 동작 확인 시나리오
+### 필요 시 ID 값 수정
+
+### 0. 회원 생성
+POST http://localhost:8080/v1/members
+Content-Type: application/json
+
+{
+  "memberId": "coupon-test@test.com",
+  "password": "test1234!",
+  "name": "coupon-test",
+  "birthday": "1990-01-01",
+  "phoneNumber": "01012345678",
+  "gender": "M",
+  "tosAgreement": true,
+  "privacyAgreement": true,
+  "marketingAgreement": false
+}
+
+### 1. 카테고리 생성
+POST http://localhost:8080/v1/categories
+Content-Type: application/json
+X-MEMBER-ID: coupon-test@test.com
+ROLE: ADMIN
+
+{
+  "categoryName": "coupon-test-category",
+  "categoryLevel": 1
+}
+
+### 2. 상품 등록 (상품/옵션 생성)
+POST http://localhost:8080/v1/products
+Content-Type: application/json
+X-MEMBER-ID: coupon-test@test.com
+ROLE: ADMIN
+
+{
+  "name": "coupon-test-product",
+  "description": "coupon test product",
+  "categoryId": 1,
+  "price": 10000,
+  "summaryDescription": "summary",
+  "simpleDescription": "simple",
+  "productOptions": [
+    {
+      "productOptionName": "default-option",
+      "productOptionDetails": [
+        {
+          "productOptionType": "color",
+          "productOptionDetailName": "black"
+        }
+      ],
+      "stockQuantity": 10,
+      "additionalPrice": 0
+    }
+  ],
+  "thumbnail": "/thumbnail/path",
+  "productImages": {
+    "paths": [
+      "/img/1"
+    ]
+  },
+  "tags": [
+    {
+      "tagName": "tag-1"
+    }
+  ]
+}
+
+### 3. 상품 조회 (productId/productOptionId 확인 후 아래 주문에 반영)
+GET http://localhost:8080/v1/products/1
+X-MEMBER-ID: coupon-test@test.com
+
+### 4. 쿠폰 생성 (코드 발급)
+POST http://localhost:8080/v1/coupons
+Content-Type: application/json
+X-MEMBER-ID: coupon-test@test.com
+ROLE: ADMIN
+
+{
+  "couponName": "coupon-test-1000",
+  "couponType": "FIXED",
+  "amount": 1000,
+  "minOrderPrice": 0,
+  "maxDiscountPrice": 0,
+  "couponStartDate": "2024-01-01T00:00:00",
+  "couponEndDate": "2029-12-31T23:59:59",
+  "issueType": "CODE",
+  "couponIssueCode": "TESTCOUPON-ORDER",
+  "comment": ""
+}
+
+### 5. 쿠폰 발급 (member coupon 생성)
+POST http://localhost:8080/v1/coupons/issue
+X-MEMBER-ID: coupon-test@test.com
+Content-Type: application/json
+
+{
+  "couponIssueCode": "TESTCOUPON-ORDER"
+}
+
+### 6. 보유 쿠폰 조회 (couponId 확인 후 주문에 사용)
+GET http://localhost:8080/v1/members/me/coupons
+X-MEMBER-ID: coupon-test@test.com
+
+### 7. 주문 생성 (쿠폰 사용)
+POST http://localhost:8080/v1/orders
+Content-Type: application/json
+X-MEMBER-ID: coupon-test@test.com
+
+{
+  "addressInfo": {
+    "address1": "서울특별시 강남구",
+    "address2": "테스트",
+    "postalCode": "06234",
+    "receiver": "테스트",
+    "phoneNumber": "010-1234-5678",
+    "email": "coupon-test@test.com"
+  },
+  "items": [
+    {
+      "productId": 1,
+      "productOptionId": 1,
+      "quantity": 1
+    }
+  ],
+  "paymentMethod": "CARD",
+  "orderDiscount": {
+    "couponId": 1,
+    "points": 0
+  },
+  "orderDetail": {
+    "originalTotal": 10000,
+    "discountedTotal": 10000,
+    "productDiscount": 0,
+    "additionalDiscount": 1000,
+    "shippingFee": 0,
+    "finalAmount": 9000
+  }
+}
+
+### 8. 보유 쿠폰 조회 (주문 후 쿠폰 삭제 확인)
+GET http://localhost:8080/v1/members/me/coupons
+X-MEMBER-ID: coupon-test@test.com
+
+### 9. 쿠폰 삭제 (soft delete)
+POST http://localhost:8080/v1/coupons/delete
+Content-Type: application/json
+X-MEMBER-ID: coupon-test@test.com
+ROLE: ADMIN
+
+{
+  "couponId": 1
+}
+
+
+### 전체쿠폰조회
+POST http://localhost:8080/v1/coupons/search
+ROLE: ADMIN
+Content-Type: application/json
+
+{
+  "page": 0,
+  "size": 10
+}

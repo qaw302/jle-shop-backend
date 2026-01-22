@@ -110,7 +110,6 @@ public class CartItemServiceImpl implements CartItemService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberNotFoundException(String.format("멤버 %s 를 찾을 수 없습니다", memberId)));
         List<CartItemResponseDto.CartItemFlatDto> allCartItemsByMemberId = cartItemRepository.findAllByMemberId(member.getMemberId());
-        log.error("페치 결과 : {}", allCartItemsByMemberId);
         Map<Long, CartItemResponseDto.CartItemGet> cartMap = new LinkedHashMap<>();
         LocalDateTime now = LocalDateTime.now();
 

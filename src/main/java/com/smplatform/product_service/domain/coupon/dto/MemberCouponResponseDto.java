@@ -4,7 +4,6 @@ import com.querydsl.core.annotations.QueryProjection;
 import com.smplatform.product_service.domain.coupon.entity.MemberCoupon;
 import lombok.Getter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class MemberCouponResponseDto {
@@ -34,8 +33,8 @@ public class MemberCouponResponseDto {
         private Integer minOrderPrice;
         private Integer maxDiscountPrice;
         private LocalDateTime issuedAt;
-        private LocalDate couponStartDate;
-        private LocalDate couponEndDate;
+        private LocalDateTime couponStartDate;
+        private LocalDateTime couponEndDate;
         private String comment;
         private String status;
         private Long couponId;
@@ -49,8 +48,8 @@ public class MemberCouponResponseDto {
                                 Integer minOrderPrice,
                                 Integer maxDiscountPrice,
                                 LocalDateTime issuedAt,
-                                LocalDate couponStartDate,
-                                LocalDate couponEndDate,
+                                LocalDateTime couponStartDate,
+                                LocalDateTime couponEndDate,
                                 String comment,
                                 String status,
                                 Long couponId) {

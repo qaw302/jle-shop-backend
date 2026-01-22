@@ -19,6 +19,12 @@ public class CustomCouponRepositoryImpl implements CustomCouponRepository {
     @Override
     public List<Coupon> searchCoupon(CouponRequestDto.CouponSearch couponSearchDto) {
         BooleanBuilder booleanBuilder = new BooleanBuilder();
+        booleanBuilder.and(coupon.deletedAt.isNull());
+        if (couponSearchDto == null) {
+            return query.selectFrom(coupon)
+                    .where(booleanBuilder)
+                    .fetch();
+        }
         if (Objects.nonNull(couponSearchDto.getCouponName())) {
             booleanBuilder.and(coupon.couponName.contains(couponSearchDto.getCouponName()));
         }

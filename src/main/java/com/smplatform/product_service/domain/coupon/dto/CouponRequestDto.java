@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class CouponRequestDto {
 
@@ -20,8 +20,8 @@ public class CouponRequestDto {
         private Integer amount;
         private Integer minOrderPrice;
         private Integer maxDiscountPrice;
-        private LocalDate couponStartDate;
-        private LocalDate couponEndDate;
+        private LocalDateTime couponStartDate;
+        private LocalDateTime couponEndDate;
         @NotNull
         private IssueType issueType;
         private String couponIssueCode;
@@ -31,8 +31,8 @@ public class CouponRequestDto {
     @Getter
     public static class CouponSearch {
         private String couponName;
-        private LocalDate couponStartDate;
-        private LocalDate couponEndDate;
+        private LocalDateTime couponStartDate;
+        private LocalDateTime couponEndDate;
     }
 
     @Getter

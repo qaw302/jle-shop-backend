@@ -36,7 +36,8 @@ public class CustomMemberCouponRepositoryImpl implements CustomMemberCouponRepos
                         c.couponId))
                 .from(mc)
                 .join(mc.coupon, c)
-                .where(mc.member.memberId.eq(memberId))
+                .where(mc.member.memberId.eq(memberId)
+                        .and(c.deletedAt.isNull()))
                 .fetch()
                 ;
     }

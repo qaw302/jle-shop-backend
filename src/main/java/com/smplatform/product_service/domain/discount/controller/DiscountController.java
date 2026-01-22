@@ -26,10 +26,10 @@ public class DiscountController {
 
     @GetMapping
     @Operation(summary = "할인코드 조회", description = "해당 조건의 할인코드 조회")
-    public ResponseEntity<List<DiscountResponseDto.DiscountInfo>> getDiscountList(@RequestParam(required = false) String referenceDate,
-                                                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-                                                                                  @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-                                                                                  @RequestParam(required = false) String discountName) {
+    public ResponseEntity<List<DiscountResponseDto.DiscountInfo>> getDiscountList(@RequestParam(name = "referenceDate", required = false) String referenceDate,
+                                                                                  @RequestParam(name = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+                                                                                  @RequestParam(name = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+                                                                                  @RequestParam(name = "discountName", required = false) String discountName) {
         List<DiscountResponseDto.DiscountInfo> discountInfo = discountService.getDiscountList(referenceDate, startDate, endDate, discountName);
 
         return ResponseEntity.status(HttpStatus.OK).body(discountInfo);
@@ -53,4 +53,3 @@ public class DiscountController {
         return ResponseEntity.status(HttpStatus.OK).body(id);
     }
 }
-
