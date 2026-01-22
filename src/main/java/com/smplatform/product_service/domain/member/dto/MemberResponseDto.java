@@ -27,7 +27,7 @@ public class MemberResponseDto {
             this.name = member.getName();
             this.birthday = member.getBirthday();
             this.phoneNumber = member.getPhoneNumber();
-            this.gender = member.getGender().toString();
+            this.gender = member.getGender() != null ? member.getGender().toString() : null;
             this.status = member.getStatus().toString();
             this.level = member.getLevel().toString();
             this.authority = member.getAuthority().toString();
