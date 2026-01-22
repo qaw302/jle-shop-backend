@@ -56,6 +56,9 @@ public class Coupon {
     @CreationTimestamp
     private LocalDateTime createdAt;
 
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
     private Coupon(CouponRequestDto.CouponCreate couponCreateDto) {
         this.couponName = couponCreateDto.getCouponName();
         this.couponType = couponCreateDto.getCouponType();
@@ -77,8 +80,17 @@ public class Coupon {
         return new Coupon(couponCreateDto);
     }
 
+    public void markDeleted() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    public boolean isDeleted() {
+        return deletedAt != null;
+    }
+
     public boolean isAvailable() {
-        return (couponStartAt == null || !LocalDate.now().isBefore(couponStartAt))
+        return !isDeleted()
+                && (couponStartAt == null || !LocalDate.now().isBefore(couponStartAt))
                 && (couponEndAt   == null || !LocalDate.now().isAfter(couponEndAt));
     }
 

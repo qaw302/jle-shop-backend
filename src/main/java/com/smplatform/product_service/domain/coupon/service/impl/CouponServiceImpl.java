@@ -5,7 +5,9 @@ import com.smplatform.product_service.domain.coupon.dto.CouponResponseDto;
 import com.smplatform.product_service.domain.coupon.entity.Coupon;
 import com.smplatform.product_service.domain.coupon.entity.IssueType;
 import com.smplatform.product_service.domain.coupon.repository.CouponRepository;
+import com.smplatform.product_service.domain.coupon.repository.MemberCouponRepository;
 import com.smplatform.product_service.domain.coupon.service.CouponService;
+import com.smplatform.product_service.domain.coupon.entity.MemberCouponStatus;
 import com.smplatform.product_service.exception.BadRequestException;
 import com.smplatform.product_service.exception.InternalServerErrorException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CouponServiceImpl implements CouponService {
     private final CouponRepository couponRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
     @Override
     public String createCoupon(CouponRequestDto.CouponCreate couponRequestDto) {
@@ -81,11 +84,17 @@ public class CouponServiceImpl implements CouponService {
         try {
             Long couponId = couponRequestDto.getCouponId();
 
-            if (!couponRepository.existsById(couponId)) {
+            Coupon coupon = couponRepository.findById(couponId).orElse(null);
+            if (coupon == null || coupon.isDeleted()) {
                 throw new BadRequestException("존재하지 않는 쿠폰입니다.");
             }
 
-            couponRepository.deleteById(couponId);
+            memberCouponRepository.updateStatusByCouponId(
+                    couponId,
+                    MemberCouponStatus.ACTIVE,
+                    MemberCouponStatus.EXPIRED
+            );
+            coupon.markDeleted();
             log.info("쿠폰이 성공적으로 삭제되었습니다. 쿠폰ID: {}", couponId);
 
         } catch (InternalServerErrorException e) {

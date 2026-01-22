@@ -11,7 +11,6 @@ import com.smplatform.product_service.domain.member.enums.search.OrderDateSearch
 import com.smplatform.product_service.domain.member.enums.search.OrderSerach;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
 import java.time.LocalDate;

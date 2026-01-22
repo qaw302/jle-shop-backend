@@ -12,6 +12,7 @@ import com.smplatform.product_service.domain.coupon.service.MemberCouponService;
 import com.smplatform.product_service.domain.member.entity.Member;
 import com.smplatform.product_service.domain.member.exception.MemberNotFoundException;
 import com.smplatform.product_service.domain.member.repository.MemberRepository;
+import com.smplatform.product_service.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,7 +31,11 @@ public class MemberCouponServiceImpl implements MemberCouponService {
     @Override
     public MemberCouponResponseDto.CouponIssue issueCoupon(String memberId, MemberCouponRequestDto.CouponIssue couponIssueDto) {
         Member member = memberRepository.findById(memberId).orElseThrow(()->new MemberNotFoundException(memberId));
-        Coupon coupon = couponRepository.findByCouponCode(couponIssueDto.getCouponIssueCode()).orElseThrow(()-> new CouponNotFoundException(couponIssueDto.getCouponIssueCode()));
+        Coupon coupon = couponRepository.findByCouponCodeAndDeletedAtIsNull(couponIssueDto.getCouponIssueCode())
+                .orElseThrow(()-> new CouponNotFoundException(couponIssueDto.getCouponIssueCode()));
+        if (memberCouponRepository.existsByMemberMemberIdAndCouponCouponId(memberId, coupon.getCouponId())) {
+            throw new BadRequestException("이미 발급된 쿠폰입니다.");
+        }
 
         MemberCoupon memberCoupon = MemberCoupon.createMemberCoupon(member, coupon);
         memberCouponRepository.save(memberCoupon);

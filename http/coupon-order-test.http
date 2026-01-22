@@ -84,7 +84,7 @@ ROLE: ADMIN
   "minOrderPrice": 0,
   "maxDiscountPrice": 0,
   "couponStartDate": "2024-01-01",
-  "couponEndDate": "2099-12-31",
+  "couponEndDate": "2010-12-31",
   "issueType": "CODE",
   "couponIssueCode": "TESTCOUPON-ORDER",
   "comment": ""
@@ -142,3 +142,24 @@ X-MEMBER-ID: coupon-test@test.com
 ### 8. 보유 쿠폰 조회 (주문 후 쿠폰 삭제 확인)
 GET http://localhost:8080/v1/members/me/coupons
 X-MEMBER-ID: coupon-test@test.com
+
+### 9. 쿠폰 삭제 (soft delete)
+POST http://localhost:8080/v1/coupons/delete
+Content-Type: application/json
+X-MEMBER-ID: coupon-test@test.com
+ROLE: ADMIN
+
+{
+  "couponId": 1
+}
+
+
+### 전체쿠폰조회
+POST http://localhost:8080/v1/coupons/search
+ROLE: ADMIN
+Content-Type: application/json
+
+{
+  "page": 0,
+  "size": 10
+}
