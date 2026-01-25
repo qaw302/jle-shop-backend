@@ -1,115 +1,169 @@
 # Product Service
 
-상품, 주문, 쿠폰, 할인, 결제까지 전자상거래 핵심 도메인을 다루는 Spring Boot 기반 백엔드 서비스입니다.
+쇼핑몰 플랫폼의 상품 관리 및 주문 처리를 담당하는 백엔드 서비스입니다.
+
+## 👨‍💻 담당 업무 및 기여도
+
+### 전체 프로젝트 기여율
+- **전체 기능**: 30% (5명 중 1명)
+- **백엔드 기능**: 40% (백엔드 3명 중)
+
+### 주요 담당 기능
+#### 쿠폰 시스템 
+- 쿠폰 생성/발급/관리 기능
+- 회원별 쿠폰 소유 및 사용 처리
+- 쿠폰 할인 금액 계산 로직
+
+#### 공통 기능
+- 토큰 발급 및 인증 기능
+- 주문 사용자/관리자 조회 기능
+- 전역 예외 처리
+
+### 기술적 기여
+- Docker 기반 배포 환경 구성
+- GitHub Actions CI/CD 파이프라인 구축
+- QueryDSL 설정 및 복잡한 검색 쿼리 구현
+- API 문서화 (Swagger)
+
+## 🛠 사용 기술
+### Backend
+- **Language**: Java 17
+- **Framework**: Spring Boot 3.2.10
+- **ORM**: Spring Data JPA, QueryDSL 5.0.0
+- **Database**: MySQL 8.0 (Production), H2 (Development)
+- **Security**: Spring Security, BCrypt
+- **Build Tool**: Gradle 8.10.2
+
+### Infrastructure
+- **Container**: Docker
+- **CI/CD**: GitHub Actions
+- **Cloud**: Oracle Cloud Infrastructure
+- **Cache**: Redis
+
+### Documentation
+- **API Docs**: Swagger (SpringDoc OpenAPI 2.0.2)
 
 
-## 프로젝트 개요
-- 목적: 커머스 핵심 기능을 통합한 상품 서비스 구축
-- 특징: 도메인 중심 설계, QueryDSL 기반 복잡 조회, 결제/주문 트랜잭션 통합 처리
-- 실행 환경: Java 17, Spring Boot 3.2.x, Gradle
+## 🏗 배포 환경
 
-## 핵심 기능
-- 상품/카테고리: 상품 등록, 옵션/이미지/태그 관리, 카테고리 계층 구조 지원
-- 할인/쿠폰: 전체/카테고리/상품 단위 할인, 쿠폰 발급/검색/보유 조회
-- 주문/결제: 주문 생성, 주문 조회/관리자 상태 변경, 토스 결제 승인 통합
-- 장바구니: 옵션별 장바구니 등록 및 수량 관리
-- 회원/주소/배송: 회원/주소 관리, 탈퇴 처리, 배송 정보 관리
-- API 문서: SpringDoc OpenAPI + Swagger UI 제공
-
-## 기술 스택
-- Language: Java 17
-- Framework: Spring Boot 3.2.10, Spring MVC, Spring Validation
-- Data: Spring Data JPA, QueryDSL, H2 (dev), MySQL (prod)
-- Security: Spring Security (CORS, Header 기반 권한 체크)
-- Docs: springdoc-openapi 2.0.2
-- Build/Deploy: Gradle, Docker
-
-## 도메인 구조
-`src/main/java/com/smplatform/product_service/domain` 아래에 기능별로 분리되어 있습니다.
-- product: 상품, 옵션, 이미지, 태그
-- category: 카테고리 계층 구조
-- discount: 할인 정책 및 대상
-- coupon: 쿠폰 발급/보유/검색
-- cart: 장바구니
-- order: 주문/결제/주문검색
-- member: 회원/주소/배송
-
-## 실행 방법 (로컬)
-```bash
-./gradlew bootRun
+### Production
+```yaml
+Server: Oracle Cloud Infrastructure (ARM64)
+Database: MySQL 8.0
+Container: Docker
+Reverse Proxy: Nginx
+CI/CD: GitHub Actions
 ```
 
-기본 프로파일은 `dev`이며 H2 인메모리 DB를 사용합니다.
-- 서비스 포트: `8080`
-- H2 콘솔: `http://localhost:8080/h2-console`
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- OpenAPI: `http://localhost:8080/v3/api-docs`
-
-관리자 기능은 요청 헤더로 권한을 구분합니다.
-- `X-MEMBER-ID: <memberId>`
-- `ROLE: ADMIN`
-
-## 프로파일/환경 변수
-`application-dev.yml`과 `application-prod.yml`을 사용합니다.
-
-### dev (H2)
-- `jdbc:h2:mem:testdb`
-- `ddl-auto: create-drop`
-
-### prod (MySQL)
-필요한 환경 변수:
-- `MYSQL_USERNAME`
-- `MYSQL_PASSWORD`
-- `PAYMENT_TOSS_API`
-- `BACKEND_SERVER_PORT`
-
-## 테스트 및 샘플 요청
-`http/` 폴더에 도메인별 테스트 시나리오가 정리되어 있습니다.
-- `http/product-api-test.http`
-- `http/order-api-test.http`
-- `http/payment-test.http`
-- `http/coupon.http`
-- `http/cart.http`
-- `http/member.http`
-
-테스트 실행:
-```bash
-./gradlew test
+### Development
+```yaml
+Database: H2 In-Memory
+Port: 8080
+Profile: dev
 ```
 
-## DB 스키마
-MySQL 초기 스키마는 `src/main/resources/schema-mysql.sql`에 있습니다.
+## 🔧 서비스 구조
 
-## Docker 실행
+### Architecture
+```
+[Client] 
+   ↓
+[Nginx]
+   ↓
+[Gateway Service (Docker Container)]   →   [Token Service (Docker Container)]   →   [Redis]
+   ↓
+[Product Service (Docker Container)]
+   ↓
+[MySQL Database]
+```
+
+### CI/CD Pipeline
+```
+1. Push to main branch
+   ↓
+2. GitHub Actions triggered
+   ↓
+3. Build with Gradle
+   ↓
+4. Build Docker Image (linux/arm64)
+   ↓
+5. Push to Docker Hub
+   ↓
+6. SSH to Oracle Cloud Server
+   ↓
+7. Pull latest image & Deploy
+```
+
+### Package Structure
+```
+com.smplatform.product_service
+├── domain
+│   ├── cart          # 장바구니
+│   ├── category      # 카테고리
+│   ├── coupon        # 쿠폰
+│   ├── discount      # 할인
+│   ├── member        # 회원
+│   ├── option        # 옵션
+│   ├── order         # 주문
+│   └── product       # 상품
+├── config            # 설정 (Security, JPA, QueryDSL 등)
+├── exception         # 전역 예외 처리
+└── aop              # AOP (권한 검증)
+```
+
+## 🚀 실행 방법
+
+### Local 개발 환경
 ```bash
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
+
+### Docker 배포
+```bash
+# 이미지 빌드
 docker build -t product-service .
+
+# 컨테이너 실행
 docker run -p 8080:8080 \
-  -e SPRING_PROFILES_ACTIVE=prod \
-  -e MYSQL_USERNAME=... \
-  -e MYSQL_PASSWORD=... \
-  -e PAYMENT_TOSS_API=... \
-  -e BACKEND_SERVER_PORT=8080 \
+  -e MYSQL_USERNAME=your_username \
+  -e MYSQL_PASSWORD=your_password \
+  -e PAYMENT_TOSS_API=your_api_key \
   product-service
 ```
 
-## 참고 문서
-- API 설계서: `docs/api-design.md`
-- 회원 API 변경사항: `docs/member-api-changes.md`
+## 📝 API 문서
 
-## 프로젝트 구조 요약
+서비스 실행 후 다음 URL에서 API 문서를 확인할 수 있습니다:
 ```
-src
-├─ main
-│  ├─ java/com/smplatform/product_service
-│  │  ├─ config
-│  │  ├─ domain
-│  │  ├─ advice
-│  │  ├─ aop
-│  │  └─ exception
-│  └─ resources
-│     ├─ application.yml
-│     ├─ application-dev.yml
-│     ├─ application-prod.yml
-│     └─ schema-mysql.sql
-└─ test
+http://localhost:8080/swagger-ui/index.html
 ```
+
+## 🔑 주요 구현 내용
+
+### 1. 계층형 카테고리 구조
+- 대/중/소 분류 3단계 카테고리
+- 상위 카테고리 조회 시 하위 카테고리 상품까지 포함
+
+### 2. 할인 정책 자동 적용
+- 상품 등록 시 카테고리별/전체 할인 자동 적용
+- 할인 우선순위: 개별 상품 할인 > 카테고리 할인 > 전체 할인
+
+### 3. 결제 통합 처리
+- 토스페이먼츠 결제 승인과 주문 처리를 하나의 트랜잭션으로 처리
+- 결제 성공 시 자동으로 주문 상태 변경 및 재고 차감
+- 멱등성 보장으로 중복 결제 방지
+
+### 4. QueryDSL 기반 동적 쿼리
+- 복잡한 검색 조건을 처리하는 동적 쿼리 구현
+- 관리자/사용자별 다른 검색 조건 지원
+
+### 5. 권한 기반 접근 제어
+- AOP를 활용한 관리자 권한 검증
+- 사용자별 접근 가능한 API 분리
+
+## 📌 관련 링크
+
+- [Organization](https://github.com/shoppingmall-platform)
+- [Frontend Repository](https://github.com/shoppingmall-platform/jle-front)
+- [Gateway Service](https://github.com/shoppingmall-platform/gateway-service)
+- [Token Service](https://github.com/shoppingmall-platform/token-service)
