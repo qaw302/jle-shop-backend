@@ -1,23 +1,18 @@
-# Product Service
+# JLE | 의류 쇼핑몰
+쇼핑몰 플랫폼의 상품 관리 및 주문 처리에서 필요한 기본적인 기능을 구현한 프로젝트입니다.
+> http://jleshop.duckdns.org/
 
-쇼핑몰 플랫폼의 상품 관리 및 주문 처리를 담당하는 백엔드 서비스입니다.
 
-## 👨‍💻 담당 업무 및 기여도
-
-### 전체 프로젝트 기여율
-- **전체 기능**: 30% (5명 중 1명)
-- **백엔드 기능**: 40% (백엔드 3명 중)
-
-### 주요 담당 기능
-#### 카테고리
+## 👨‍💻 주요 담당 기능
+### 카테고리
 - 카테고리 생성/수정/삭제/조회
 
-#### 쿠폰 
+### 쿠폰 
 - 쿠폰 생성/발급/관리 기능
 - 회원별 쿠폰 소유 및 사용 처리
 - 쿠폰 할인 금액 계산 로직
 
-#### 공통 기능
+### 공통 기능
 - 토큰 발급 및 인증 기능
 - 주문 사용자/관리자 조회 기능
 - 전역 예외 처리
@@ -27,6 +22,7 @@
 - GitHub Actions CI/CD 파이프라인 구축
 - API 문서화 (Swagger)
 
+---
 ## 🛠 사용 기술
 ### Backend
 - **Language**: Java 17
@@ -45,7 +41,34 @@
 ### Documentation
 - **API Docs**: Swagger (SpringDoc OpenAPI 2.0.2)
 
+---
+## 🚀 실행 방법
 
+### Local 개발 환경
+```bash
+./gradlew bootRun --args='--spring.profiles.active=dev'
+```
+
+### Docker 배포
+```bash
+# 이미지 빌드
+docker build -t product-service .
+
+# 컨테이너 실행
+docker run -p 8080:8080 \
+  -e MYSQL_USERNAME=your_username \
+  -e MYSQL_PASSWORD=your_password \
+  -e PAYMENT_TOSS_API=your_api_key \
+  product-service
+```
+
+---
+## 📝 API 문서
+
+서비스 실행 후 다음 URL에서 API 문서를 확인할 수 있습니다
+> http://localhost:8080/swagger-ui/index.html
+
+---
 ## 🏗 배포 환경
 
 ### Production
@@ -64,6 +87,7 @@ Port: 8080
 Profile: dev
 ```
 
+---
 ## 🔧 서비스 구조
 
 ### Architecture
@@ -96,6 +120,7 @@ Profile: dev
 7. Pull latest image & Deploy
 ```
 
+
 ### Package Structure
 ```
 com.smplatform.product_service
@@ -113,56 +138,7 @@ com.smplatform.product_service
 └── aop              # AOP (권한 검증)
 ```
 
-## 🚀 실행 방법
-
-### Local 개발 환경
-```bash
-./gradlew bootRun --args='--spring.profiles.active=dev'
-```
-
-### Docker 배포
-```bash
-# 이미지 빌드
-docker build -t product-service .
-
-# 컨테이너 실행
-docker run -p 8080:8080 \
-  -e MYSQL_USERNAME=your_username \
-  -e MYSQL_PASSWORD=your_password \
-  -e PAYMENT_TOSS_API=your_api_key \
-  product-service
-```
-
-## 📝 API 문서
-
-서비스 실행 후 다음 URL에서 API 문서를 확인할 수 있습니다:
-```
-http://localhost:8080/swagger-ui/index.html
-```
-
-## 🔑 주요 구현 내용
-
-### 1. 계층형 카테고리 구조
-- 대/중/소 분류 3단계 카테고리
-- 상위 카테고리 조회 시 하위 카테고리 상품까지 포함
-
-### 2. 할인 정책 자동 적용
-- 상품 등록 시 카테고리별/전체 할인 자동 적용
-- 할인 우선순위: 개별 상품 할인 > 카테고리 할인 > 전체 할인
-
-### 3. 결제 통합 처리
-- 토스페이먼츠 결제 승인과 주문 처리를 하나의 트랜잭션으로 처리
-- 결제 성공 시 자동으로 주문 상태 변경 및 재고 차감
-- 멱등성 보장으로 중복 결제 방지
-
-### 4. QueryDSL 기반 동적 쿼리
-- 복잡한 검색 조건을 처리하는 동적 쿼리 구현
-- 관리자/사용자별 다른 검색 조건 지원
-
-### 5. 권한 기반 접근 제어
-- AOP를 활용한 관리자 권한 검증
-- 사용자별 접근 가능한 API 분리
-
+---
 ## 📌 관련 링크
 
 - [Organization](https://github.com/shoppingmall-platform)
